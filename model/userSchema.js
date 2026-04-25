@@ -13,12 +13,19 @@ const userSchema = new Schema({
   },
   password: {
     type: String,
+
+    required: [true, "Password is requeired"],
+    select: false,
   },
   confirmPassword: {
     type: String,
+    required: [true, "Password is requeired"],
+    select: false,
   },
   phoneNumber: {
     type: String,
+    unique: true,
+    sparse: true,
   },
   confirmPassword: {
     type: String,
@@ -45,6 +52,15 @@ const userSchema = new Schema({
     enum: ["admin", "user", "editor", "vendor"],
     default: "user",
   },
+  refreshToken: [
+    {
+      token: String,
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
   billingAddress: {
     firstName: {
       type: String,
@@ -68,5 +84,5 @@ const userSchema = new Schema({
       type: String,
     },
   },
-});
+}{timestamps:true});
 module.exports = mongoose.model("User", userSchema);

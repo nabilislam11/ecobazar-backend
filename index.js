@@ -16,8 +16,9 @@ app.post("/registration", async (req, res) => {
   }
   try {
     const existinguser = await User.findOne({ email });
+    // status 409 means conflig
     if (existinguser) {
-      return res.status(400).json({
+      return res.status(409).json({
         success: false,
         message: "This user is already exists",
       });
