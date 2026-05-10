@@ -3,7 +3,8 @@ const User = require("../model/userSchema");
 const mailVerification = require("../utils/email");
 const emptyFieldValidation = require("../utils/validation");
 const tokenGenarator = require("../token");
-const existingData = require("../existingData");
+const bcrypt = require("bcrypt");
+const existingData = require("../utils/existingData");
 const registrationController = async (req, res) => {
   const { email, password, confirmPassword, terms } = req.body;
   if (!terms) {
@@ -25,9 +26,10 @@ const registrationController = async (req, res) => {
         message: "Password was not match",
       });
     }
+    const hash = bcrypt.hashSync(password, 10);
     let user = new User({
       email: email,
-      password: password,
+      password: hash,
       confirmPassword: confirmPassword,
       terms: terms,
     });
@@ -56,4 +58,27 @@ const registrationController = async (req, res) => {
   //     message: "Registration successfull",
   //   });
 };
-module.exports = { registrationController };
+const loginController = async (req, res) => {
+  const { email, password } = req.body;
+  let user = await existingData(res, { email: email });
+  if (!user) {
+    return res.status(401).json({
+      success: false,
+      message: "This user not registered ",
+    });
+
+    emptyFieldValidation(res, email, password);
+
+    let pass = bcrypt.compareSync(password, user.password);
+    if (!pass) {
+      return res.status(401).json({
+        message: "Invalied Credential ",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Suggesfully login",
+    });
+  }
+};
+module.exports = { registrationController, loginController };

@@ -6,9 +6,13 @@ const User = require("./model/userSchema");
 
 app.use(express.json());
 
-const { registrationController } = require("./controller/authController");
+const {
+  registrationController,
+  loginController,
+} = require("./controller/authController");
 dbConfig();
 app.post("/registration", registrationController);
+app.post("/login", loginController);
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Server is running ${port}`);

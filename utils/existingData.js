@@ -1,4 +1,4 @@
-const User = require("./model/userSchema");
+const user = require("../model/userSchema");
 const existingData = async (res, findData) => {
   const existinguser = await User.findOne({ findData });
 
