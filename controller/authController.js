@@ -1,10 +1,10 @@
 const jwt = require("jsonwebtoken");
 const User = require("../model/userSchema");
-const mailVerification = require("../utils/email");
+const { mailVerification } = require("../utils/email");
 const emptyFieldValidation = require("../utils/validation");
 const tokenGenarator = require("../utils/token");
 const bcrypt = require("bcrypt");
-const existingData = require("../utils/existingData");
+
 const registrationController = async (req, res) => {
   const { email, password, confirmPassword, terms } = req.body;
   if (!terms) {
@@ -12,15 +12,17 @@ const registrationController = async (req, res) => {
       message: "Select the terms and condition ",
     });
   }
+  const existinguser = await User.findOne({ email: email });
+  console.log(existinguser);
+
   try {
-    if (await existingData({ email: email })) {
+    if (existinguser) {
       return res.status(401).json({
         success: false,
         message: "This user is already exists",
       });
     }
 
-    emptyFieldValidation(res, email, password, confirmPassword, terms);
     if (password !== confirmPassword) {
       return res.status(400).json({
         message: "Password was not match",
@@ -41,7 +43,9 @@ const registrationController = async (req, res) => {
       "1d",
     );
 
-    mailVerification(token, email);
+    await mailVerification(token, email);
+    console.log(mailVerification);
+
     return res.status(201).json({
       success: true,
       message: "Registration successfull",
@@ -60,12 +64,14 @@ const registrationController = async (req, res) => {
 };
 const loginController = async (req, res) => {
   const { email, password } = req.body;
-  let user = await existingData(res, { email: email });
-  if (!user) {
-    return res.status(400).json({
-      success: false,
-      message: "This user not registered ",
-    });
+  try {
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "This user not registered ",
+      });
+    }
 
     emptyFieldValidation(res, email, password);
 
@@ -78,6 +84,16 @@ const loginController = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Suggesfully login",
+    });
+    console.log("Body password:", password);
+    console.log("User:", user);
+    console.log("DB password:", user?.password);
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "server error",
     });
   }
 };
@@ -139,10 +155,46 @@ const resentVerificationController = async (req, res) => {
     "1d",
   );
 };
+const verifyEmailController = async (req, res) => {
+  const { token } = req.params;
+  jwt.verify(
+    token,
+    process.env.ACCESS_TOKEN_SECRET,
+    async function (err, decoded) {
+      if (err) {
+        return res.status(400).json({
+          message: "unauthorized",
+        });
+      }
+      try {
+        const user = decoded.id;
+        const findUser = await User.findById(user);
+        if (findUser.isVerified) {
+          return res.status(400).json({
+            message: "User is already verified ",
+          });
+        } else {
+          findUser.isVerified = true;
+          await findUser.save();
+          res.status(200).json({
+            success: true,
+            message: "Verify successfully done",
+          });
+        }
+      } catch (error) {
+        return res.status(500).json({
+          success: false,
+          message: "server error",
+        });
+      }
+    },
+  );
+};
 module.exports = {
   registrationController,
   loginController,
   forgotPasswordController,
   resetPasswordController,
   resentVerificationController,
+  verifyEmailController,
 };

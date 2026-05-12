@@ -11,13 +11,14 @@ const {
   loginController,
   resetPasswordController,
   resentVerificationController,
+  verifyEmailController,
 } = require("./controller/authController");
 dbConfig();
 app.post("/registration", registrationController);
 app.post("/login", loginController);
-app.post("/login", loginController);
 app.post("/resetPassword/:token", resetPasswordController);
-app.post("/resentveryficationemail/:token", resetPasswordController);
+app.post("/resentveryficationemail", resetPasswordController);
+app.post("/verifyemail/:token", verifyEmailController);
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Server is running ${port}`);
