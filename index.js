@@ -9,10 +9,15 @@ app.use(express.json());
 const {
   registrationController,
   loginController,
+  resetPasswordController,
+  resentVerificationController,
 } = require("./controller/authController");
 dbConfig();
 app.post("/registration", registrationController);
 app.post("/login", loginController);
+app.post("/login", loginController);
+app.post("/resetPassword/:token", resetPasswordController);
+app.post("/resentveryficationemail/:token", resetPasswordController);
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Server is running ${port}`);

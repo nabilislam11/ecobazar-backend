@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../model/userSchema");
 const mailVerification = require("../utils/email");
 const emptyFieldValidation = require("../utils/validation");
-const tokenGenarator = require("../token");
+const tokenGenarator = require("../utils/token");
 const bcrypt = require("bcrypt");
 const existingData = require("../utils/existingData");
 const registrationController = async (req, res) => {
@@ -62,7 +62,7 @@ const loginController = async (req, res) => {
   const { email, password } = req.body;
   let user = await existingData(res, { email: email });
   if (!user) {
-    return res.status(401).json({
+    return res.status(400).json({
       success: false,
       message: "This user not registered ",
     });
@@ -81,4 +81,68 @@ const loginController = async (req, res) => {
     });
   }
 };
-module.exports = { registrationController, loginController };
+const forgotPasswordController = async (req, res) => {
+  const { email } = req.body;
+  emptyFieldValidation(res, email);
+
+  const user = await existingData(res, { email: email });
+  if (!user) {
+    return res.status(400).json({
+      success: false,
+      message: "This user not registered ",
+    });
+  }
+
+  const token = tokenGenarator(
+    { id: user._id, email: user.email },
+    process.env.ACCESS_TOKEN_SECRET,
+    "1d",
+  );
+
+  resetPassword(token, email);
+  return res.status(201).json({
+    success: true,
+    message: "Please check your email",
+  });
+};
+const resetPasswordController = async (req, res) => {
+  const { newPassword, confirmPassword } = req.body;
+  const { token } = req.params;
+
+  if (password !== confirmPassword) {
+    return res.status(400).json({
+      message: "Password did not match",
+    });
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+    if (err) {
+      res.send({ message: "unauthorized" });
+    } else {
+      const hash = bcrypt.hashSync(newPassword, 10);
+      const updateData = User.findByIdAndUpdate(
+        { _id: decoded.id },
+        { password: hash },
+      );
+      res.status({ message: "Password Upload" });
+    }
+  });
+};
+const resentVerificationController = async (req, res) => {
+  const { email } = req.body;
+  const user = User.findOne({ email: email });
+  const token = tokenGenarator(
+    {
+      id: user_id,
+      email: user.email,
+    },
+    process.env.ACCESS_TOKEN_SECRET,
+    "1d",
+  );
+};
+module.exports = {
+  registrationController,
+  loginController,
+  forgotPasswordController,
+  resetPasswordController,
+  resentVerificationController,
+};
