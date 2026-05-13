@@ -42,10 +42,7 @@ const registrationController = async (req, res) => {
       process.env.ACCESS_TOKEN_SECRET,
       "1d",
     );
-
     await mailVerification(token, email);
-    console.log(mailVerification);
-
     return res.status(201).json({
       success: true,
       message: "Registration successfull",
@@ -85,9 +82,6 @@ const loginController = async (req, res) => {
       success: true,
       message: "Suggesfully login",
     });
-    console.log("Body password:", password);
-    console.log("User:", user);
-    console.log("DB password:", user?.password);
   } catch (error) {
     console.log(error);
 
@@ -125,7 +119,7 @@ const resetPasswordController = async (req, res) => {
   const { newPassword, confirmPassword } = req.body;
   const { token } = req.params;
 
-  if (password !== confirmPassword) {
+  if (newPassword !== confirmPassword) {
     return res.status(400).json({
       message: "Password did not match",
     });
@@ -145,15 +139,39 @@ const resetPasswordController = async (req, res) => {
 };
 const resentVerificationController = async (req, res) => {
   const { email } = req.body;
-  const user = User.findOne({ email: email });
-  const token = tokenGenarator(
-    {
-      id: user_id,
-      email: user.email,
-    },
-    process.env.ACCESS_TOKEN_SECRET,
-    "1d",
-  );
+  try {
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      return res.status(400).json({
+        message: "User not found",
+      });
+    }
+    if (user.isVerified) {
+      return res.status(400).json({
+        message: "User is already verified",
+      });
+    }
+    const token = tokenGenarator(
+      {
+        id: user._id,
+        email: user.email,
+      },
+      process.env.ACCESS_TOKEN_SECRET,
+      "1d",
+    );
+
+    await mailVerification(token, email);
+    return res.status(200).json({
+      success: true,
+      message: "Please verify your email",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Server error ",
+    });
+    console.log(error);
+  }
 };
 const verifyEmailController = async (req, res) => {
   const { token } = req.params;
