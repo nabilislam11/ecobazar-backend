@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../model/userSchema");
-const { mailVerification } = require("../utils/email");
+const { mailVerification, resetPassword } = require("../utils/email");
 const emptyFieldValidation = require("../utils/validation");
 const tokenGenarator = require("../utils/token");
 const bcrypt = require("bcrypt");
@@ -13,8 +13,6 @@ const registrationController = async (req, res) => {
     });
   }
   const existinguser = await User.findOne({ email: email });
-  console.log(existinguser);
-
   try {
     if (existinguser) {
       return res.status(401).json({
@@ -32,7 +30,6 @@ const registrationController = async (req, res) => {
     let user = new User({
       email: email,
       password: hash,
-      confirmPassword: confirmPassword,
       terms: terms,
     });
     await user.save();
@@ -83,8 +80,6 @@ const loginController = async (req, res) => {
       message: "Suggesfully login",
     });
   } catch (error) {
-    console.log(error);
-
     return res.status(500).json({
       success: false,
       message: "server error",
@@ -95,7 +90,7 @@ const forgotPasswordController = async (req, res) => {
   const { email } = req.body;
   emptyFieldValidation(res, email);
 
-  const user = await existingData(res, { email: email });
+  const user = await User.findOne({ email: email });
   if (!user) {
     return res.status(400).json({
       success: false,
@@ -108,7 +103,7 @@ const forgotPasswordController = async (req, res) => {
     process.env.ACCESS_TOKEN_SECRET,
     "1d",
   );
-
+  console.log("ORIGINAL TOKEN:", token);
   resetPassword(token, email);
   return res.status(201).json({
     success: true,
@@ -116,26 +111,58 @@ const forgotPasswordController = async (req, res) => {
   });
 };
 const resetPasswordController = async (req, res) => {
-  const { newPassword, confirmPassword } = req.body;
   const { token } = req.params;
+  console.log("TOKEN FROM PARAM:", token);
+  console.log("TOKEN LENGTH:", token.length);
+  const { newPassword, confirmPassword } = req.body;
+  console.log(req.body, "body");
 
-  if (newPassword !== confirmPassword) {
-    return res.status(400).json({
-      message: "Password did not match",
+  try {
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        message: "Password did not match",
+      });
+    }
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    console.log(decoded, "decoded ");
+
+    console.log(newPassword, "passwar");
+    const hash = bcrypt.hashSync(newPassword, 10);
+    console.log(hash, "hasj");
+
+    const updateData = await User.findByIdAndUpdate(
+      decoded.id,
+
+      { password: hash },
+      { new: true },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Password updated successfully",
+    });
+    // jwt.verify(
+    //   token,
+    //   process.env.ACCESS_TOKEN_SECRET,
+    //   async function (err, decoded) {
+    //     if (err) {
+    //       res.send({ message: "unauthorized" });
+    //     } else {
+    //       const hash = bcrypt.hashSync(newPassword, 10);
+    //       const updateData = await User.findByIdAndUpdate(
+    //         { _id: decoded.id },
+    //         { password: hash },
+    //       );
+    //       res.status({ message: "Password updated successfully" });
+    //     }
+    //   },
+    // );
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
     });
   }
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
-    if (err) {
-      res.send({ message: "unauthorized" });
-    } else {
-      const hash = bcrypt.hashSync(newPassword, 10);
-      const updateData = User.findByIdAndUpdate(
-        { _id: decoded.id },
-        { password: hash },
-      );
-      res.status({ message: "Password Upload" });
-    }
-  });
 };
 const resentVerificationController = async (req, res) => {
   const { email } = req.body;
@@ -170,7 +197,6 @@ const resentVerificationController = async (req, res) => {
       success: false,
       message: "Server error ",
     });
-    console.log(error);
   }
 };
 const verifyEmailController = async (req, res) => {

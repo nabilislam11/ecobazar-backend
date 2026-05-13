@@ -18,11 +18,13 @@ const {
   resetPasswordController,
   resentVerificationController,
   verifyEmailController,
+  forgotPasswordController,
 } = require("./controller/authController");
 dbConfig();
 app.post("/registration", registrationLimiter, registrationController);
 app.post("/login", loginLimiter, loginController);
-app.post("/resetPassword/:token", resetPasswordController);
+app.post("/forgotpassword", forgotPasswordController);
+app.post("/resetpassword/:token", resetPasswordController);
 app.post(
   "/resentveryficationemail",
   resentMailLimiter,
