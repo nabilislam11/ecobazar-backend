@@ -20,6 +20,13 @@ const {
   verifyEmailController,
   forgotPasswordController,
 } = require("./controller/authController");
+const {
+  getAllUserController,
+  getSingleUserController,
+  deleteUserController,
+  updateUserController,
+  getUserVerifiedController,
+} = require("./controller/userController");
 dbConfig();
 app.post("/registration", registrationLimiter, registrationController);
 app.post("/login", loginLimiter, loginController);
@@ -31,6 +38,14 @@ app.post(
   resentVerificationController,
 );
 app.post("/verifyemail/:token", verifyEmailController);
+// product create
+// order managment
+// user managment
+app.get("/alluser", getAllUserController);
+app.get("/getverifieduser", getUserVerifiedController);
+app.get("/allsingleuser/:id", getSingleUserController);
+app.delete("/deletuser/:id", deleteUserController);
+app.post("/upldateuser/:id", updateUserController);
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Server is running ${port}`);
