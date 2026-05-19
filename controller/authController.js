@@ -12,8 +12,8 @@ const registrationController = async (req, res) => {
       message: "Select the terms and condition ",
     });
   }
-  const existinguser = await User.findOne({ email: email });
   try {
+    const existinguser = await User.findOne({ email: email });
     if (existinguser) {
       return res.status(401).json({
         success: false,
@@ -26,7 +26,7 @@ const registrationController = async (req, res) => {
         message: "Password was not match",
       });
     }
-    const hash = bcrypt.hashSync(password, 10);
+    const hash = await bcrypt.hashSync(password, 10);
     let user = new User({
       email: email,
       password: hash,
@@ -50,14 +50,10 @@ const registrationController = async (req, res) => {
       message: "Server Error ",
     });
   }
-  //   emptyFieldValidation(email, password, confirmPassword, terms);
-  //   return res.status(201).json({
-  //     success: true,
-  //     message: "Registration successfull",
-  //   });
 };
 const loginController = async (req, res) => {
   const { email, password } = req.body;
+  emptyFieldValidation(res, email, password);
   try {
     const user = await User.findOne({ email: email });
     if (!user) {
@@ -67,9 +63,7 @@ const loginController = async (req, res) => {
       });
     }
 
-    emptyFieldValidation(res, email, password);
-
-    let pass = bcrypt.compareSync(password, user.password);
+    let pass = await bcrypt.compareSync(password, user.password);
     if (!pass) {
       return res.status(401).json({
         message: "Invalied Credential ",
@@ -90,25 +84,31 @@ const forgotPasswordController = async (req, res) => {
   const { email } = req.body;
   emptyFieldValidation(res, email);
 
-  const user = await User.findOne({ email: email });
-  if (!user) {
-    return res.status(400).json({
+  try {
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "This user not registered ",
+      });
+    }
+    const token = tokenGenarator(
+      { id: user._id, email: user.email },
+      process.env.ACCESS_TOKEN_SECRET,
+      "1d",
+    );
+    console.log("ORIGINAL TOKEN:", token);
+    await resetPassword(token, email);
+    return res.status(201).json({
+      success: true,
+      message: "Please check your email",
+    });
+  } catch (error) {
+    return res.status(500).json({
       success: false,
-      message: "This user not registered ",
+      message: "server error",
     });
   }
-
-  const token = tokenGenarator(
-    { id: user._id, email: user.email },
-    process.env.ACCESS_TOKEN_SECRET,
-    "1d",
-  );
-  console.log("ORIGINAL TOKEN:", token);
-  resetPassword(token, email);
-  return res.status(201).json({
-    success: true,
-    message: "Please check your email",
-  });
 };
 const resetPasswordController = async (req, res) => {
   const { token } = req.params;
@@ -201,7 +201,7 @@ const resentVerificationController = async (req, res) => {
 };
 const verifyEmailController = async (req, res) => {
   const { token } = req.params;
-  jwt.verify(
+  const decoded = jwt.verify(
     token,
     process.env.ACCESS_TOKEN_SECRET,
     async function (err, decoded) {
@@ -213,6 +213,12 @@ const verifyEmailController = async (req, res) => {
       try {
         const user = decoded.id;
         const findUser = await User.findById(user);
+        if (!findUser) {
+          return res.status(404).json({
+            success: false,
+            message: "User not found ",
+          });
+        }
         if (findUser.isVerified) {
           return res.status(400).json({
             message: "User is already verified ",
