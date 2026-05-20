@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const productSchema = new Schema(
   {
-    titike: {
+    titile: {
       type: String,
       required: true,
       unique: true,
