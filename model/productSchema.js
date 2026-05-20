@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const productSchema = new Schema(
   {
-    titile: {
+    title: {
       type: String,
       required: true,
       unique: true,
@@ -66,3 +66,4 @@ const productSchema = new Schema(
   },
   { timestamps: true },
 );
+module.exports = mongoose.model("Product", productSchema);

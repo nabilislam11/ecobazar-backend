@@ -27,6 +27,8 @@ const {
   updateUserController,
   getUserVerifiedController,
 } = require("./controller/userController");
+const { createProductController } = require("./controller/productController");
+
 dbConfig();
 app.post("/registration", registrationLimiter, registrationController);
 app.post("/login", loginLimiter, loginController);
@@ -38,7 +40,9 @@ app.post(
   resentVerificationController,
 );
 app.post("/verifyemail/:token", verifyEmailController);
+
 // product create
+app.post("/createproduct", createProductController);
 // order managment
 // user managment
 app.get("/alluser", getAllUserController);
