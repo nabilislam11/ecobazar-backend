@@ -66,6 +66,12 @@ const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
     const product = await Product.findByIdAndDelete({ _id: id });
+    if (!product) {
+      return res.status(401).json({
+        success: false,
+        message: "Product is not exist",
+      });
+    }
     return res.status(200).json({
       success: true,
       message: `Delete successfully${product.title}`,
@@ -90,6 +96,12 @@ const updateProduct = async (req, res) => {
     const product = await Product.findByIdAndUpdate({ _id: id }, req.body, {
       new: true,
     });
+    if (!product) {
+      return res.status(401).json({
+        success: false,
+        message: "Product is not exist",
+      });
+    }
     return res.status(201).json({
       success: true,
       message: `Product update ${product.title} data`,

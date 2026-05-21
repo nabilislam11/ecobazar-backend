@@ -65,6 +65,17 @@ const productSchema = new Schema(
         type: String,
       },
     ],
+    images: [
+      {
+        url: {
+          type: String,
+          isMain: {
+            type: Boolean,
+            default: false,
+          },
+        },
+      },
+    ],
   },
   { timestamps: true },
 );
