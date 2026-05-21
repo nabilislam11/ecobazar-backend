@@ -6,6 +6,7 @@ const productSchema = new Schema(
       type: String,
       required: true,
       unique: true,
+      sparse: true,
     },
     description: {
       type: String,
@@ -19,6 +20,7 @@ const productSchema = new Schema(
       type: String,
       required: true,
       unique: true,
+      sparse: true,
     },
     inStock: {
       type: Number,

@@ -18,7 +18,7 @@ const createProductController = async (req, res) => {
     //       message:"missing sku "
     //   })
     // }
-    const product = new Product({
+    const product = await new Product({
       ...req.body,
       sku: sku,
     });
@@ -37,4 +37,76 @@ const createProductController = async (req, res) => {
     });
   }
 };
-module.exports = { createProductController };
+const getAllProduct = async (req, res) => {
+  const product = await Product.find({});
+  return res.status(200).json({
+    success: true,
+    message: "Getallprodoct ",
+    data: product,
+  });
+};
+const getSingleProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById({ _id: id });
+    return res.status(200).json({
+      success: true,
+      message: `Get Single Product${product.title} `,
+      data: product,
+    });
+  } catch (error) {
+    console.log(error, "getsingleproduct error");
+    return res.status(200).json({
+      success: false,
+      message: "Server error ",
+    });
+  }
+};
+const deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findByIdAndDelete({ _id: id });
+    return res.status(200).json({
+      success: true,
+      message: `Delete successfully${product.title}`,
+      data: product,
+    });
+  } catch (error) {
+    console.log(error, "getsingleproduct error");
+    return res.status(500).json({
+      success: false,
+      message: "Server error ",
+    });
+  }
+};
+/** 
+update product note :
+(node:19036) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(Use `node --trace-warnings ...` to show where the warning was created)
+*/
+const updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findByIdAndUpdate({ _id: id }, req.body, {
+      new: true,
+    });
+    return res.status(201).json({
+      success: true,
+      message: `Product update ${product.title} data`,
+      data: product,
+    });
+  } catch (error) {
+    console.log(error, "update Product error");
+    return res.status(500).json({
+      success: false,
+      message: "Server error ",
+    });
+  }
+};
+module.exports = {
+  createProductController,
+  getAllProduct,
+  deleteProduct,
+  getSingleProduct,
+  updateProduct,
+};
