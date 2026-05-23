@@ -1,17 +1,28 @@
 require("dotenv").config();
 const express = require("express");
-
+const multer = require("multer");
 const {
   loginLimiter,
   resentMailLimiter,
   registrationLimiter,
 } = require("./utils/limiter");
 const app = express();
+app.use("/uploads", express.static("uploads"));
 const dbConfig = require("./confiq/dbConfig");
 const User = require("./model/userSchema");
 
 app.use(express.json());
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads");
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + "-" + file.originalname);
+  },
+});
 
+const upload = multer({ storage: storage });
 const {
   registrationController,
   loginController,
@@ -48,7 +59,7 @@ app.post(
 app.post("/verifyemail/:token", verifyEmailController);
 
 // product create
-app.post("/createproduct", createProductController);
+app.post("/createproduct", upload.array("avatar", 5), createProductController);
 app.get("/getallproduct", getAllProduct);
 app.get("/getsingleproduct/:id", getSingleProduct);
 app.delete("/deleteproduct/:id", deleteProduct);
