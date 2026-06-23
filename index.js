@@ -45,6 +45,12 @@ const {
   deleteProduct,
   updateProduct,
 } = require("./controller/productController");
+const {
+  createCartController,
+  getCartController,
+  incremetDrecrimentCartController,
+  deleteCartController,
+} = require("./controller/cartController");
 
 dbConfig();
 app.post("/registration", registrationLimiter, registrationController);
@@ -64,6 +70,13 @@ app.get("/getallproduct", getAllProduct);
 app.get("/getsingleproduct/:id", getSingleProduct);
 app.delete("/deleteproduct/:id", deleteProduct);
 app.post("/updateproduct/:id", updateProduct);
+
+// cart management
+app.post("/create/cart", createCartController);
+app.get("/get-cart/:userId", getCartController);
+app.post("/cart/update/:id", incremetDrecrimentCartController);
+app.delete("/cart-delete/:id", deleteCartController);
+
 // order managment
 // user managment
 app.get("/alluser", getAllUserController);
