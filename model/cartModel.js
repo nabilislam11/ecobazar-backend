@@ -11,9 +11,14 @@ const cartSchema = new Schema({
     ref: "User",
     required: true,
   },
+
   quantity: {
     type: Number,
     min: 1,
+    required: true,
+  },
+  totalPrice: {
+    type: Number,
     required: true,
   },
 });

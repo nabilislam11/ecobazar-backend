@@ -2,9 +2,9 @@ const cartModel = require("../model/cartModel");
 const productSchema = require("../model/productSchema");
 
 const createCartController = async (req, res) => {
-  const { proid, userid } = req.body;
+  const { proId, userId } = req.body;
   try {
-    const exigstingproduct = await productSchema.findOne({ _id: proid });
+    const exigstingproduct = await productSchema.findOne({ _id: proId });
     if (!exigstingproduct) {
       return res.status(404).json({
         success: false,
@@ -12,11 +12,13 @@ const createCartController = async (req, res) => {
       });
     }
     const existingCart = await cartModel.findOne({
-      product: proid,
-      user: userid,
+      product: proId,
+      user: userId,
     });
     if (existingCart) {
       existingCart.quantity += 1;
+      existingCart.totalPrice =
+        existingCart.totalPrice + exigstingproduct.price;
       await existingCart.save();
 
       return res.status(201).json({
@@ -26,9 +28,10 @@ const createCartController = async (req, res) => {
     }
 
     let cart = new cartModel({
-      product: proid,
+      product: proId,
       quantity: 1,
-      user: userid,
+      totalPrice: exigstingproduct.price,
+      user: userId,
     });
     await cart.save();
     return res.status(200).json({
@@ -46,15 +49,26 @@ const createCartController = async (req, res) => {
 };
 const incremetDrecrimentCartController = async (req, res) => {
   const { id } = req.params;
-  const { type } = req.body;
+  const { type, userId } = req.body;
+  console.log("hit");
+
   try {
-    const product = await cartModel.findOne({ product: id });
-    if (type === "plus") {
-      product.quantity += 1;
-    } else {
-      product.quantity -= 1;
+    const cart = await cartModel.findOne({ product: id, user: userId });
+    const product = await productSchema.findOne({ _id: id });
+    if (!cart) {
+      return res.status(404).json({
+        success: false,
+        message: "Cart Not Found",
+      });
     }
-    await product.save();
+    if (type === "plus") {
+      cart.quantity += 1;
+      cart.totalPrice = cart.totalPrice + cart.price;
+    } else {
+      cart.quantity -= 1;
+      cart.totalPrice = cart.totalPrice - cart.price;
+    }
+    await cart.save();
     return res.json({
       success: true,
       message: "cart updated ",
@@ -68,13 +82,15 @@ const incremetDrecrimentCartController = async (req, res) => {
 };
 const getCartController = async (req, res) => {
   const { userId } = req.params;
-  console.log(userId);
 
   try {
-    const cart = await cartModel.find({ user: userId }).populate("product");
+    const cart = await cartModel
+      .find({ user: userId })
+      .populate("user product");
+
     let totalPrice = 0;
     cart.map((item) => {
-      totalPrice += item.price;
+      totalPrice += item.product.price;
     });
     return res.status(200).json({
       cart,
@@ -82,6 +98,8 @@ const getCartController = async (req, res) => {
       success: true,
     });
   } catch (error) {
+    console.log(error);
+
     return res.status(500).json({
       success: false,
       message: "Server error to getCartProduct",
