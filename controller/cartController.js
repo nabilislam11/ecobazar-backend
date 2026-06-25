@@ -63,10 +63,10 @@ const incremetDrecrimentCartController = async (req, res) => {
     }
     if (type === "plus") {
       cart.quantity += 1;
-      cart.totalPrice = cart.totalPrice + cart.price;
+      cart.totalPrice = cart.totalPrice + product.price;
     } else {
       cart.quantity -= 1;
-      cart.totalPrice = cart.totalPrice - cart.price;
+      cart.totalPrice = cart.totalPrice - product.price;
     }
     await cart.save();
     return res.json({
@@ -74,6 +74,8 @@ const incremetDrecrimentCartController = async (req, res) => {
       message: "cart updated ",
     });
   } catch (error) {
+    console.log(error, "error");
+
     return res.status(500).json({
       success: false,
       message: "Server erro ",
