@@ -51,6 +51,7 @@ const {
   incremetDrecrimentCartController,
   deleteCartController,
 } = require("./controller/cartController");
+const paymentController = require("./controller/paymentController");
 
 dbConfig();
 app.post("/registration", registrationLimiter, registrationController);
@@ -78,6 +79,7 @@ app.post("/cart/update/:id", incremetDrecrimentCartController);
 app.delete("/cart-delete/:id", deleteCartController);
 
 // order managment
+app.post("/payment", paymentController);
 // user managment
 app.get("/alluser", getAllUserController);
 app.get("/getverifieduser", getUserVerifiedController);
