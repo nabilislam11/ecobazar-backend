@@ -6,12 +6,8 @@ const tokenGenarator = require("../utils/token");
 const bcrypt = require("bcrypt");
 
 const registrationController = async (req, res) => {
-  const { email, password, confirmPassword, terms } = req.body;
-  if (!terms) {
-    return res.status(400).json({
-      message: "Select the terms and condition ",
-    });
-  }
+  const { firstName, lastName, email, password, confirmPassword } = req.body;
+
   try {
     const existinguser = await User.findOne({ email: email });
     if (existinguser) {
@@ -30,7 +26,8 @@ const registrationController = async (req, res) => {
     let user = new User({
       email: email,
       password: hash,
-      terms: terms,
+      firstName: firstName,
+      lastName: lastName,
     });
     await user.save();
 
