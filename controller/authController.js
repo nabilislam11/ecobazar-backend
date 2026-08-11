@@ -23,6 +23,8 @@ const registrationController = async (req, res) => {
       });
     }
     const hash = await bcrypt.hashSync(password, 10);
+    console.log(hash, "hash");
+
     let user = new User({
       email: email,
       password: hash,
