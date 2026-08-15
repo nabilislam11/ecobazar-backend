@@ -71,6 +71,16 @@ const loginController = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Suggesfully login",
+      data: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        isVerified: user.isVerified,
+        isHold: user.isHold,
+        role: user.role,
+        refreshToken: [],
+      },
     });
   } catch (error) {
     return res.status(500).json({

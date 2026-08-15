@@ -36,14 +36,59 @@ const deleteUserController = async (req, res) => {
 };
 const updateUserController = async (req, res) => {
   const { id } = req.params;
-  const userData = await User.findByIdAndUpdate({ _id: id }, req.body, {
-    new: true,
-  });
-  return res.status(200).json({
-    success: true,
-    message: `Update  ${userData.email} data`,
-    userData,
-  });
+
+  try {
+    const {
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      country,
+      state,
+      city,
+      address,
+      postalCode,
+    } = req.body;
+
+    const userData = await User.findByIdAndUpdate(
+      id,
+      {
+        firstName,
+        lastName,
+        email,
+        phoneNumber,
+        country,
+        state,
+        city,
+        address,
+        postalCode,
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    ).select("-password");
+
+    if (!userData) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      userData,
+    });
+  } catch (error) {
+    console.error("Update user error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
 };
 module.exports = {
   getAllUserController,

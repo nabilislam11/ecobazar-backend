@@ -70,6 +70,6 @@ router.get("/alluser", getAllUserController);
 router.get("/getverifieduser", getUserVerifiedController);
 router.get("/allsingleuser/:id", getSingleUserController);
 router.delete("/deletuser/:id", deleteUserController);
-router.post("/upldateuser/:id", updateUserController);
+router.put("/updateuser/:id", updateUserController);
 
 module.exports = router;

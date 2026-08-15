@@ -45,6 +45,24 @@ const userSchema = new Schema({
     enum: ["admin", "user", "editor", "vendor"],
     default: "user",
   },
+  address: {
+    type: String,
+  },
+  country: {
+    type: String,
+  },
+  states: {
+    type: String,
+  },
+  phoneNumber: {
+    type: String,
+  },
+  postalCode: {
+    type: Number,
+  },
+  city: {
+    type: String,
+  },
   refreshToken: [
     {
       token: String,
@@ -62,18 +80,6 @@ const userSchema = new Schema({
       type: String,
     },
     companyName: {
-      type: String,
-    },
-    streetAddress: {
-      type: String,
-    },
-    country: {
-      type: String,
-    },
-    states: {
-      type: String,
-    },
-    phoneNumber: {
       type: String,
     },
   },
