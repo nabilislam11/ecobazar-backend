@@ -27,12 +27,33 @@ const getUserVerifiedController = async (req, res) => {
 };
 const deleteUserController = async (req, res) => {
   const { id } = req.params;
-  const userData = await User.findByIdAndDelete({ id });
-  return res.status(200).json({
-    success: true,
-    message: `Delete ${userData.email} data`,
-    userData,
-  });
+  try {
+    const { id } = req.params;
+
+    const userData = await User.findByIdAndDelete(id);
+
+    // User না পাওয়া গেলে
+    if (!userData) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User deleted successfully",
+      userData,
+    });
+  } catch (error) {
+    console.error("Delete user error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete user",
+      error: error.message,
+    });
+  }
 };
 const updateUserController = async (req, res) => {
   const { id } = req.params;

@@ -121,52 +121,67 @@ const forgotPasswordController = async (req, res) => {
 };
 const resetPasswordController = async (req, res) => {
   const { token } = req.params;
-  console.log("TOKEN FROM PARAM:", token);
-  console.log("TOKEN LENGTH:", token.length);
   const { newPassword, confirmPassword } = req.body;
-  console.log(req.body, "body");
 
   try {
+    if (!newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Both password fields are required",
+      });
+    }
+
     if (newPassword !== confirmPassword) {
       return res.status(400).json({
+        success: false,
         message: "Password did not match",
       });
     }
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    console.log(decoded, "decoded ");
 
-    console.log(newPassword, "passwar");
-    const hash = bcrypt.hashSync(newPassword, 10);
-    console.log(hash, "hasj");
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
+    }
 
-    const updateData = await User.findByIdAndUpdate(
+    let decoded;
+
+    try {
+      decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired reset token",
+      });
+    }
+
+    const hash = await bcrypt.hash(newPassword, 10);
+
+    const user = await User.findByIdAndUpdate(
       decoded.id,
-
-      { password: hash },
-      { new: true },
+      {
+        password: hash,
+      },
+      {
+        new: true,
+      },
     );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
     return res.status(200).json({
       success: true,
       message: "Password updated successfully",
     });
-    // jwt.verify(
-    //   token,
-    //   process.env.ACCESS_TOKEN_SECRET,
-    //   async function (err, decoded) {
-    //     if (err) {
-    //       res.send({ message: "unauthorized" });
-    //     } else {
-    //       const hash = bcrypt.hashSync(newPassword, 10);
-    //       const updateData = await User.findByIdAndUpdate(
-    //         { _id: decoded.id },
-    //         { password: hash },
-    //       );
-    //       res.status({ message: "Password updated successfully" });
-    //     }
-    //   },
-    // );
   } catch (error) {
+    console.error("Reset password error:", error);
+
     return res.status(500).json({
       success: false,
       message: "Server error",
