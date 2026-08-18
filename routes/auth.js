@@ -33,6 +33,8 @@ const {
   getSingleUserController,
   deleteUserController,
   updateUserController,
+  holdUserController,
+  searchUserController,
 } = require("../controller/userController");
 const router = express.Router();
 router.post("/registration", registrationLimiter, registrationController);
@@ -70,6 +72,8 @@ router.get("/alluser", getAllUserController);
 router.get("/getverifieduser", getUserVerifiedController);
 router.get("/allsingleuser/:id", getSingleUserController);
 router.delete("/deletuser/:id", deleteUserController);
+router.put("/holduser/:id", holdUserController);
 router.put("/updateuser/:id", updateUserController);
+router.post("/searchuser", searchUserController);
 
 module.exports = router;
