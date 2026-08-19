@@ -22,12 +22,16 @@ const productSchema = new Schema(
       unique: true,
       sparse: true,
     },
-    inStock: {
+    stock: {
       type: Number,
       default: 0,
       min: 0,
     },
-    discountPrice: {
+    discountType: {
+      type: String,
+      enum: ["percentage", "flat", "none"],
+    },
+    discount: {
       type: Number,
       min: 0,
       default: 0,
@@ -69,10 +73,10 @@ const productSchema = new Schema(
       {
         url: {
           type: String,
-          isMain: {
-            type: Boolean,
-            default: false,
-          },
+        },
+        isMain: {
+          type: Boolean,
+          default: false,
         },
       },
     ],

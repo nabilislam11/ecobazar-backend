@@ -51,7 +51,7 @@ router.post("/verifyemail/:token", verifyEmailController);
 // product create
 router.post(
   "/createproduct",
-  upload.array("avatar", 5),
+  upload.array("images", 5),
   createProductController,
 );
 router.get("/getallproduct", getAllProduct);
