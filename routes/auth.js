@@ -36,6 +36,20 @@ const {
   holdUserController,
   searchUserController,
 } = require("../controller/userController");
+const {
+  createCategory,
+  getAllCategories,
+  getSingleCategory,
+  updateCategory,
+  deleteCategory,
+} = require("../controller/categoryController");
+const {
+  createSubCategory,
+  getAllSubCategories,
+  getSingleSubCategory,
+  updateSubCategory,
+  deleteSubCategory,
+} = require("../controller/subCategoryController");
 const router = express.Router();
 router.post("/registration", registrationLimiter, registrationController);
 router.post("/login", loginLimiter, loginController);
@@ -48,6 +62,27 @@ router.post(
 );
 router.post("/verifyemail/:token", verifyEmailController);
 
+//category create
+router.post("/createcategory", createCategory);
+
+router.get("/allcategory", getAllCategories);
+
+router.get("/singlecategory/:id", getSingleCategory);
+
+router.put("/updatecategory/:id", updateCategory);
+
+router.delete("/deletecategory/:id", deleteCategory);
+//subCategory
+
+router.post("/createsubcategory", createSubCategory);
+
+router.get("/allsubcategory", getAllSubCategories);
+
+router.get("/singlesubcategory/:id", getSingleSubCategory);
+
+router.put("/updatesubcategory/:id", updateSubCategory);
+
+router.delete("/deletesubcategory/:id", deleteSubCategory);
 // product create
 router.post(
   "/createproduct",

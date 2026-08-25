@@ -2,6 +2,8 @@ const Product = require("../model/productSchema");
 const emptyFieldValidation = require("../utils/validation");
 const createProductController = async (req, res) => {
   try {
+    console.log("BODY:", req.body);
+    console.log("FILES:", req.files);
     const {
       title,
       price,
@@ -18,9 +20,6 @@ const createProductController = async (req, res) => {
       discountEndDate,
       isMain,
     } = req.body;
-
-    console.log("BODY:", req.body);
-    console.log("FILES:", req.files);
 
     // =========================
     // IMAGE HANDLING
