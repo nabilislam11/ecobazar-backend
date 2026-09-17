@@ -37,8 +37,6 @@ const createProductController = async (req, res) => {
       isMain: String(isMain) === String(index),
     }));
 
-    console.log("PRODUCT IMAGES:", images);
-
     // =========================
     // STOCK VALIDATION
     // =========================
@@ -201,25 +199,83 @@ update product note :
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await Product.findByIdAndUpdate({ _id: id }, req.body, {
-      new: true,
-    });
+
+    // =========================
+    // FIND PRODUCT
+    // =========================
+
+    const product = await Product.findById(id);
+
     if (!product) {
-      return res.status(401).json({
+      return res.status(404).json({
         success: false,
         message: "Product is not exist",
       });
     }
-    return res.status(201).json({
+
+    // =========================
+    // GET DATA FROM REQUEST
+    // =========================
+
+    const { isMain, imageData, ...productData } = req.body;
+
+    // Normal product fields update
+    Object.assign(product, productData);
+
+    // =========================
+    // IMAGE HANDLING
+    // =========================
+
+    const parsedImageData = JSON.parse(imageData || "[]");
+
+    const mainImageIndex = Number(isMain);
+
+    const newFiles = req.files || [];
+
+    let newFileIndex = 0;
+
+    const finalImages = parsedImageData.map((image) => {
+      // Existing image
+      if (image.type === "existing") {
+        return {
+          _id: image._id,
+          url: image.url,
+          isMain: image.index === mainImageIndex,
+        };
+      }
+
+      // New uploaded image
+      if (image.type === "new") {
+        const file = newFiles[newFileIndex++];
+
+        return {
+          url: file.path,
+          isMain: image.index === mainImageIndex,
+        };
+      }
+    });
+
+    // Replace old images with final images
+    product.images = finalImages;
+
+    // =========================
+    // SAVE
+    // =========================
+
+    const productUpdate = await product.save();
+
+    return res.status(200).json({
       success: true,
-      message: `Product update ${product.title} data`,
-      data: product,
+      message: `Product update ${productUpdate.title} data`,
+      data: productUpdate,
     });
   } catch (error) {
     console.log(error, "update Product error");
+
     return res.status(500).json({
       success: false,
-      message: "Server error ",
+      message: "Server error",
+      error: error.message,
     });
   }
 };

@@ -92,7 +92,7 @@ router.post(
 router.get("/getallproduct", getAllProduct);
 router.get("/getsingleproduct/:id", getSingleProduct);
 router.delete("/deleteproduct/:id", deleteProduct);
-router.post("/updateproduct/:id", updateProduct);
+router.post("/updateproduct/:id", upload.array("images", 5), updateProduct);
 
 // cart management
 router.post("/create/cart", createCartController);
