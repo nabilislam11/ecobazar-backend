@@ -1,5 +1,72 @@
 const Product = require("../model/productSchema");
+// const { readSheet } = require("read-excel-file/node");
 const emptyFieldValidation = require("../utils/validation");
+// const schema = {
+//   title: {
+//     column: "title",
+//     type: String,
+//   },
+
+//   price: {
+//     column: "price",
+//     type: Number,
+//   },
+
+//   category: {
+//     column: "category",
+//     type: String,
+//   },
+
+//   description: {
+//     column: "description",
+//     type: String,
+//   },
+
+//   stock: {
+//     column: "stock",
+//     type: Number,
+//   },
+
+//   discountType: {
+//     column: "discountType",
+//     type: String,
+//   },
+
+//   discount: {
+//     column: "discount",
+//     type: Number,
+//   },
+
+//   brand: {
+//     column: "brand",
+//     type: String,
+//   },
+
+//   subCategory: {
+//     column: "subCategory",
+//     type: String,
+//   },
+
+//   status: {
+//     column: "status",
+//     type: String,
+//   },
+
+//   tag: {
+//     column: "tag",
+//     type: String,
+//   },
+
+//   discountStartDate: {
+//     column: "discountStartDate",
+//     type: Date,
+//   },
+
+//   discountEndDate: {
+//     column: "discountEndDate",
+//     type: Date,
+//   },
+// };
 const createProductController = async (req, res) => {
   try {
     console.log("BODY:", req.body);
@@ -15,6 +82,7 @@ const createProductController = async (req, res) => {
       brand,
       subCategory,
       status,
+      showProduct,
       tag,
       discountStartDate,
       discountEndDate,
@@ -143,6 +211,16 @@ const createProductController = async (req, res) => {
     });
   }
 };
+// const bulkCreateProductController = async (req, res) => {
+//   console.log(req.file);
+//   // const data = await readSheet(`./${req.file.path}`);
+//   // console.log(data, "dasta");
+//   const { objects, errors } = await readSheet(`./${req.file.path}`, { schema });
+
+//   console.error(errors);
+//   console.log(objects);
+// };
+
 const getAllProduct = async (req, res) => {
   const product = await Product.find({});
   return res.status(200).json({
@@ -281,6 +359,7 @@ const updateProduct = async (req, res) => {
 };
 module.exports = {
   createProductController,
+  // bulkCreateProductController,
   getAllProduct,
   deleteProduct,
   getSingleProduct,

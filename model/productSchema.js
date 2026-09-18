@@ -64,6 +64,10 @@ const productSchema = new Schema(
       enum: ["pending", "active", "inactive"],
       default: "pending",
     },
+    showProduct: {
+      type: String,
+      enum: ["todaysDeal", "fuaturedProducts", "newArrivals", "none"],
+    },
     tag: [
       {
         type: String,

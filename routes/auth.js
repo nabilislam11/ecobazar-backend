@@ -19,6 +19,7 @@ const {
   getAllProduct,
   deleteProduct,
   updateProduct,
+  bulkCreateProductController,
 } = require("../controller/productController");
 const {
   createCartController,
@@ -89,6 +90,11 @@ router.post(
   upload.array("images", 5),
   createProductController,
 );
+// router.post(
+//   "/bulkcreateproduct",
+//   upload.single("file"),
+//   bulkCreateProductController,
+// );
 router.get("/getallproduct", getAllProduct);
 router.get("/getsingleproduct/:id", getSingleProduct);
 router.delete("/deleteproduct/:id", deleteProduct);
