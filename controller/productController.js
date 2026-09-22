@@ -1,5 +1,6 @@
 const Product = require("../model/productSchema");
 // const { readSheet } = require("read-excel-file/node");
+const fs = require("node:fs/promises");
 const emptyFieldValidation = require("../utils/validation");
 // const schema = {
 //   title: {
@@ -274,6 +275,14 @@ update product note :
 (node:19036) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
 (Use `node --trace-warnings ...` to show where the warning was created)
 */
+async function deleteFile(filePath) {
+  try {
+    await fs.unlink(filePath);
+    console.log("File deleted successfully");
+  } catch (error) {
+    console.error(`Error deleting file: ${error.message}`);
+  }
+}
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -290,6 +299,10 @@ const updateProduct = async (req, res) => {
         message: "Product is not exist",
       });
     }
+    const oldImages = product.images.map((image) => ({
+      _id: image._id,
+      url: image.url,
+    }));
 
     // =========================
     // GET DATA FROM REQUEST
@@ -333,6 +346,23 @@ const updateProduct = async (req, res) => {
       }
     });
 
+    // =========================
+    // DELETE REMOVED IMAGES
+    // =========================
+
+    for (const oldImage of product.images) {
+      const imageStillExists = finalImages.some(
+        (image) => image.url === oldImage.url,
+      );
+
+      if (!imageStillExists) {
+        await deleteFile(oldImage.url);
+      }
+    }
+
+    // =========================
+    // REPLACE OLD IMAGES
+    // ======================
     // Replace old images with final images
     product.images = finalImages;
 
