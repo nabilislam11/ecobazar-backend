@@ -43,6 +43,7 @@ const {
   getSingleCategory,
   updateCategory,
   deleteCategory,
+  getProductsByCategory,
 } = require("../controller/categoryController");
 const {
   createSubCategory,
@@ -69,6 +70,7 @@ router.post("/createcategory", createCategory);
 router.get("/allcategory", getAllCategories);
 
 router.get("/singlecategory/:id", getSingleCategory);
+router.get("/getproductsbycategory/:id", getProductsByCategory);
 
 router.put("/updatecategory/:id", updateCategory);
 

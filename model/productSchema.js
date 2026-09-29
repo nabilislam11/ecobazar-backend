@@ -36,29 +36,42 @@ const productSchema = new Schema(
       min: 0,
       default: 0,
     },
+    discountStartDate: {
+      type: Date,
+      default: null,
+    },
+    discountEndDate: {
+      type: Date,
+      default: null,
+    },
     brand: {
       type: String,
+    },
+    slug: {
+      type: String,
+      required: true,
     },
     shortDescription: {
       type: String,
     },
+    // category: {
+    //   type: String,
+    // },
+
+    // subCategory: {
+    //   type: String,
+    // },
+    // for e-commerce base
     category: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
+    },
+    subCategory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "SubCategory",
     },
 
-    subCategory: {
-      type: String,
-    },
-    /**  for e-commerce base
-  category: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "subcategory",
-  },
-  subCategory: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "category",
-  }, 
-  */
     status: {
       type: String,
       enum: ["pending", "active", "inactive"],

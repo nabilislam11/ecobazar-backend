@@ -184,6 +184,7 @@ const createProductController = async (req, res) => {
     // =========================
 
     const sku = `${Date.now()}-${new Date().getFullYear()}`;
+    const slug = title.toLowerCase().toString().trim().split(" ").join("-");
 
     // =========================
     // CREATE PRODUCT
@@ -191,7 +192,9 @@ const createProductController = async (req, res) => {
 
     const product = new Product({
       ...req.body,
+      subCategory: subCategory || undefined,
       sku,
+      slug: slug,
       images,
     });
 
@@ -233,7 +236,22 @@ const getAllProduct = async (req, res) => {
 const getSingleProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await Product.findById({ _id: id });
+    let product;
+
+    // ID hole _id diye search
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      product = await Product.findById(id);
+    } else {
+      // ID na hole slug diye search
+      product = await Product.findOne({ slug: id });
+    }
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
     return res.status(200).json({
       success: true,
       message: `Get Single Product${product.title} `,
