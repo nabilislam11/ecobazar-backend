@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Product = require("../model/productSchema");
 // const { readSheet } = require("read-excel-file/node");
 const fs = require("node:fs/promises");
@@ -301,6 +302,7 @@ async function deleteFile(filePath) {
     console.error(`Error deleting file: ${error.message}`);
   }
 }
+
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -317,22 +319,23 @@ const updateProduct = async (req, res) => {
         message: "Product is not exist",
       });
     }
-    const oldImages = product.images.map((image) => ({
-      _id: image._id,
-      url: image.url,
-    }));
 
     // =========================
     // GET DATA FROM REQUEST
     // =========================
 
-    const { isMain, imageData, ...productData } = req.body;
-
-    // Normal product fields update
-    Object.assign(product, productData);
+    const { isMain, imageData, subCategory, ...productData } = req.body;
 
     // =========================
-    // IMAGE HANDLING
+    // NORMAL PRODUCT FIELDS
+    // =========================
+
+    Object.assign(product, productData);
+
+    product.subCategory = subCategory || undefined;
+
+    // =========================
+    // IMAGE DATA
     // =========================
 
     const parsedImageData = JSON.parse(imageData || "[]");
@@ -343,52 +346,80 @@ const updateProduct = async (req, res) => {
 
     let newFileIndex = 0;
 
-    const finalImages = parsedImageData.map((image) => {
-      // Existing image
-      if (image.type === "existing") {
-        return {
-          _id: image._id,
-          url: image.url,
-          isMain: image.index === mainImageIndex,
-        };
-      }
-
-      // New uploaded image
-      if (image.type === "new") {
-        const file = newFiles[newFileIndex++];
-
-        return {
-          url: file.path,
-          isMain: image.index === mainImageIndex,
-        };
-      }
-    });
-
     // =========================
-    // DELETE REMOVED IMAGES
+    // FIND REMOVED OLD IMAGES
     // =========================
 
-    for (const oldImage of product.images) {
-      const imageStillExists = finalImages.some(
-        (image) => image.url === oldImage.url,
-      );
+    const oldImages = Array.isArray(product.images) ? product.images : [];
 
-      if (!imageStillExists) {
-        await deleteFile(oldImage.url);
+    const keptImageIds = new Set(
+      parsedImageData
+        .filter((image) => image.type === "existing" && image._id)
+        .map((image) => String(image._id)),
+    );
+
+    const removedImages = oldImages.filter(
+      (oldImage) => !keptImageIds.has(String(oldImage._id)),
+    );
+
+    // =========================
+    // BUILD FINAL IMAGES
+    // =========================
+
+    const finalImages = parsedImageData
+      .map((image) => {
+        // Existing image
+        if (image.type === "existing") {
+          return {
+            _id: image._id,
+            url: image.url,
+            isMain: image.index === mainImageIndex,
+          };
+        }
+
+        // New uploaded image
+        if (image.type === "new") {
+          const file = newFiles[newFileIndex++];
+
+          if (!file) {
+            return null;
+          }
+
+          return {
+            url: file.path,
+            isMain: image.index === mainImageIndex,
+          };
+        }
+
+        return null;
+      })
+      .filter(Boolean);
+
+    // =========================
+    // UPDATE IMAGES
+    // =========================
+
+    product.images = finalImages;
+
+    // =========================
+    // SAVE PRODUCT FIRST
+    // =========================
+
+    const productUpdate = await product.save();
+
+    // =========================
+    // DELETE REMOVED FILES
+    // =========================
+
+    for (const image of removedImages) {
+      if (image.url) {
+        await deleteFile(image.url);
       }
     }
 
     // =========================
-    // REPLACE OLD IMAGES
-    // ======================
-    // Replace old images with final images
-    product.images = finalImages;
-
+    // RESPONSE
     // =========================
-    // SAVE
-    // =========================
-
-    const productUpdate = await product.save();
 
     return res.status(200).json({
       success: true,
@@ -396,7 +427,7 @@ const updateProduct = async (req, res) => {
       data: productUpdate,
     });
   } catch (error) {
-    console.log(error, "update Product error");
+    console.log("Update Product error:", error);
 
     return res.status(500).json({
       success: false,
