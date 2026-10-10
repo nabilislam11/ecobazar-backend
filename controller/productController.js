@@ -84,7 +84,7 @@ const createProductController = async (req, res) => {
       brand,
       subCategory,
       status,
-      showProduct,
+      section,
       tag,
       discountStartDate,
       discountEndDate,
@@ -227,18 +227,26 @@ const createProductController = async (req, res) => {
 // };
 
 const getAllProduct = async (req, res) => {
-  const product = await Product.find({});
-  return res.status(200).json({
-    success: true,
-    message: "Getallprodoct ",
-    data: product,
-  });
+  try {
+    let params = req.query.section;
+
+    const product = await Product.find(params ? { section: params } : {});
+    return res.status(200).json({
+      success: true,
+      message: "Getallprodoct ",
+      data: product,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Getallprodoct get some report  ",
+      data: product,
+    });
+  }
 };
 const getSingleProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    let product;
-
     // ID hole _id diye search
     if (mongoose.Types.ObjectId.isValid(id)) {
       product = await Product.findById(id);

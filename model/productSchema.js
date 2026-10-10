@@ -77,9 +77,16 @@ const productSchema = new Schema(
       enum: ["pending", "active", "inactive"],
       default: "pending",
     },
-    showProduct: {
+    section: {
       type: String,
-      enum: ["todaysDeal", "fuaturedProducts", "newArrivals", "none"],
+      enum: [
+        "todaysDeal",
+        "featuredProducts",
+        "populerDeals",
+        "slider",
+        "none",
+      ],
+      default: "none",
     },
     tag: [
       {
