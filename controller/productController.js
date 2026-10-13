@@ -228,9 +228,22 @@ const createProductController = async (req, res) => {
 
 const getAllProduct = async (req, res) => {
   try {
-    let params = req.query.section;
+    // let params = req.query.section;
 
-    const product = await Product.find(params ? { section: params } : {});
+    // const product = await Product.find(params ? { section: params } : {});
+    const { section, category } = req.query;
+
+    const filter = {};
+
+    if (section) {
+      filter.section = section;
+    }
+
+    if (category) {
+      filter.category = category;
+    }
+
+    const product = await Product.find(filter);
     return res.status(200).json({
       success: true,
       message: "Getallprodoct ",
