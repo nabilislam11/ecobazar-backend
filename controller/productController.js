@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Product = require("../model/productSchema");
 // const { readSheet } = require("read-excel-file/node");
-const fs = require("node:fs/promises");
+const cloudinary = require("cloudinary").v2;
 const emptyFieldValidation = require("../utils/validation");
 // const schema = {
 //   title: {
@@ -104,6 +104,7 @@ const createProductController = async (req, res) => {
 
     const images = req.files.map((item, index) => ({
       url: item.path,
+      public_id: item.public_id || item.filename,
       isMain: String(isMain) === String(index),
     }));
 
@@ -315,14 +316,58 @@ update product note :
 (node:19036) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
 (Use `node --trace-warnings ...` to show where the warning was created)
 */
-async function deleteFile(filePath) {
-  try {
-    await fs.unlink(filePath);
-    console.log("File deleted successfully");
-  } catch (error) {
-    console.error(`Error deleting file: ${error.message}`);
+const getCloudinaryPublicId = (image) => {
+  if (image?.public_id) {
+    return image.public_id;
   }
-}
+
+  if (!image?.url) return null;
+
+  try {
+    const imageUrl = new URL(image.url);
+
+    if (imageUrl.hostname !== "res.cloudinary.com") {
+      return null;
+    }
+
+    const marker = "/image/upload/";
+    const uploadIndex = imageUrl.pathname.indexOf(marker);
+
+    if (uploadIndex === -1) return null;
+
+    let publicId = imageUrl.pathname.slice(uploadIndex + marker.length);
+
+    // Remove version prefix, e.g. v1792106068/
+    publicId = publicId.replace(/^v\d+\//, "");
+
+    // Remove file extension
+    publicId = publicId.replace(/\.[^/.]+$/, "");
+
+    return publicId || null;
+  } catch {
+    return null;
+  }
+};
+
+const deleteCloudinaryImage = async (image) => {
+  const publicId = getCloudinaryPublicId(image);
+
+  if (!publicId) {
+    console.warn("No Cloudinary public_id found:", image?.url);
+    return;
+  }
+
+  try {
+    const result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: "image",
+      type: "upload",
+    });
+
+    console.log(`Cloudinary delete: ${publicId} → ${result.result}`);
+  } catch (error) {
+    console.error(`Cloudinary delete failed for ${publicId}:`, error.message);
+  }
+};
 
 const updateProduct = async (req, res) => {
   try {
@@ -390,15 +435,44 @@ const updateProduct = async (req, res) => {
     const finalImages = parsedImageData
       .map((image) => {
         // Existing image
+        // if (image.type === "existing") {
+        //   return {
+        //     _id: image._id,
+        //     url: image.url,
+        //     isMain: image.index === mainImageIndex,
+        //   };
+        // }
         if (image.type === "existing") {
+          const existingImage = oldImages.find(
+            (oldImage) => String(oldImage._id) === String(image._id),
+          );
+
+          if (!existingImage) {
+            return null;
+          }
+
           return {
-            _id: image._id,
-            url: image.url,
-            isMain: image.index === mainImageIndex,
+            _id: existingImage._id,
+            url: existingImage.url,
+            public_id:
+              existingImage.public_id || getCloudinaryPublicId(existingImage),
+            isMain: Number(image.index) === mainImageIndex,
           };
         }
 
         // New uploaded image
+        // if (image.type === "new") {
+        //   const file = newFiles[newFileIndex++];
+
+        //   if (!file) {
+        //     return null;
+        //   }
+
+        //   return {
+        //     url: file.path,
+        //     isMain: image.index === mainImageIndex,
+        //   };
+        // }
         if (image.type === "new") {
           const file = newFiles[newFileIndex++];
 
@@ -407,8 +481,9 @@ const updateProduct = async (req, res) => {
           }
 
           return {
-            url: file.path,
-            isMain: image.index === mainImageIndex,
+            url: file.secure_url || file.path,
+            public_id: file.public_id || file.filename,
+            isMain: Number(image.index) === mainImageIndex,
           };
         }
 
@@ -432,10 +507,13 @@ const updateProduct = async (req, res) => {
     // DELETE REMOVED FILES
     // =========================
 
+    // for (const image of removedImages) {
+    //   if (image.url) {
+    //     await deleteFile(image.url);
+    //   }
+    // }
     for (const image of removedImages) {
-      if (image.url) {
-        await deleteFile(image.url);
-      }
+      await deleteCloudinaryImage(image);
     }
 
     // =========================

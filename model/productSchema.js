@@ -98,6 +98,9 @@ const productSchema = new Schema(
         url: {
           type: String,
         },
+        public_id: {
+          type: String,
+        },
         isMain: {
           type: Boolean,
           default: false,
