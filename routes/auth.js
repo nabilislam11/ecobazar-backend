@@ -113,7 +113,7 @@ router.post("/cart/update/:id", incremetDrecrimentCartController);
 router.delete("/cart-delete/:id", deleteCartController);
 //wishlist managment
 router.post("/create/wishlist", toggleWishlistController);
-router.post("/get/wishlist/:userId", getWishlistController);
+router.get("/get/wishlist/:userId", getWishlistController);
 // order managment
 router.post("/payment", paymentController);
 // user managment

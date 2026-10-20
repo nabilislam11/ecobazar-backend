@@ -1,6 +1,6 @@
-const mognoose = require("mongoose");
 const productSchema = require("../model/productSchema");
 const wishlishtmodel = require("../model/wishlishtmodel");
+const { default: mongoose } = require("mongoose");
 const toggleWishlistController = async (req, res) => {
   try {
     const { userId, proId } = req.body;
@@ -32,7 +32,7 @@ const toggleWishlistController = async (req, res) => {
         message: "Removed from wishlist",
       });
     }
-    await Wishlist.create({
+    await wishlishtmodel.create({
       user: userId,
       product: proId,
     });
@@ -53,7 +53,7 @@ const toggleWishlistController = async (req, res) => {
 };
 const getWishlistController = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { userId } = req.params;
     if (!mongoose.Types.ObjectId.isValid(userId || "")) {
       return res.status(400).json({
         success: false,
