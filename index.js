@@ -8,9 +8,9 @@ const authRoutes = require("./routes/auth");
 app.use(express.json());
 app.use(cors());
 app.use("/api/v1/auth", authRoutes);
-app.get("/api/v1/test", (req, res) => {
-  res.send("api working fine ");
-});
+// app.get("/api/v1/test", (req, res) => {
+//   res.send("api working fine ");
+// });
 
 dbConfig();
 

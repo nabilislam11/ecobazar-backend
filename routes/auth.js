@@ -52,6 +52,10 @@ const {
   updateSubCategory,
   deleteSubCategory,
 } = require("../controller/subCategoryController");
+const {
+  toggleWishlistController,
+  getWishlistController,
+} = require("../controller/wishlistController");
 const router = express.Router();
 router.post("/registration", registrationLimiter, registrationController);
 router.post("/login", loginLimiter, loginController);
@@ -107,7 +111,9 @@ router.post("/create/cart", createCartController);
 router.get("/get-cart/:userId", getCartController);
 router.post("/cart/update/:id", incremetDrecrimentCartController);
 router.delete("/cart-delete/:id", deleteCartController);
-
+//wishlist managment
+router.post("/create/wishlist", toggleWishlistController);
+router.post("/get/wishlist/:userId", getWishlistController);
 // order managment
 router.post("/payment", paymentController);
 // user managment

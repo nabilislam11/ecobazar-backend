@@ -2,48 +2,105 @@ const cartModel = require("../model/cartModel");
 const productSchema = require("../model/productSchema");
 
 const createCartController = async (req, res) => {
-  const { proId, userId } = req.body;
   try {
-    const exigstingproduct = await productSchema.findOne({ _id: proId });
-    if (!exigstingproduct) {
-      return res.status(404).json({
+    // Frontend-er duita naming style-i support korbe
+    const proId = req.body.proId || req.body.proid;
+    const userId = req.body.userId || req.body.userid;
+    const quantity = Number(req.body.quantity ?? 1);
+
+    // Required data validation
+    if (!proId || !userId) {
+      return res.status(400).json({
         success: false,
-        message: "Product Not Found",
+        message: "Product ID and User ID are required",
       });
     }
+
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Quantity must be a positive whole number",
+      });
+    }
+
+    // Find product
+    const product = await productSchema.findById(proId);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    const stock = Number(product.stock ?? 0);
+    const unitPrice = Number(product.price);
+
+    if (stock < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Product is out of stock",
+      });
+    }
+
+    if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid product price",
+      });
+    }
+
+    // Check existing cart item
     const existingCart = await cartModel.findOne({
       product: proId,
       user: userId,
     });
-    if (existingCart) {
-      existingCart.quantity += 1;
-      existingCart.totalPrice =
-        existingCart.totalPrice + exigstingproduct.price;
-      await existingCart.save();
 
-      return res.status(201).json({
-        success: true,
-        message: "product adding a old cart",
+    const currentQuantity = existingCart?.quantity || 0;
+    const nextQuantity = currentQuantity + quantity;
+
+    // Stock validation
+    if (nextQuantity > stock) {
+      return res.status(400).json({
+        success: false,
+        message: `Only ${Math.max(0, stock - currentQuantity)} more item(s) available`,
       });
     }
 
-    let cart = new cartModel({
+    if (existingCart) {
+      existingCart.quantity = nextQuantity;
+      existingCart.totalPrice = unitPrice * nextQuantity;
+
+      await existingCart.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Cart quantity updated",
+        data: existingCart,
+      });
+    }
+
+    // Create new cart item
+    const cart = new cartModel({
       product: proId,
-      quantity: 1,
-      totalPrice: exigstingproduct.price,
       user: userId,
+      quantity,
+      totalPrice: unitPrice * quantity,
     });
+
     await cart.save();
-    return res.status(200).json({
+
+    return res.status(201).json({
       success: true,
-      message: "Create a cart ",
+      message: "Product added to cart",
+      data: cart,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Create cart error:", error);
 
     return res.status(500).json({
       success: false,
-      message: "Server error ",
+      message: "Failed to add product to cart",
     });
   }
 };
@@ -61,13 +118,33 @@ const incremetDrecrimentCartController = async (req, res) => {
         message: "Cart Not Found",
       });
     }
+    const stock = Number(product.stock ?? 0);
+
     if (type === "plus") {
+      if (cart.quantity >= stock) {
+        return res.status(400).json({
+          success: false,
+          message: "Maximum available stock reached",
+        });
+      }
+
       cart.quantity += 1;
-      cart.totalPrice = cart.totalPrice + product.price;
-    } else {
+    } else if (type === "minus") {
+      if (cart.quantity <= 1) {
+        return res.status(400).json({
+          success: false,
+          message: "Quantity cannot be less than 1",
+        });
+      }
+
       cart.quantity -= 1;
-      cart.totalPrice = cart.totalPrice - product.price;
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid quantity action",
+      });
     }
+    cart.totalPrice = Number(product.price) * cart.quantity;
     await cart.save();
     return res.json({
       success: true,
