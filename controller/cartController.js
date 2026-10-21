@@ -169,7 +169,7 @@ const getCartController = async (req, res) => {
       .lean();
 
     // const totalPrice = cart.reduce((sum, item) => sum + item.totalPrice, 0);
-    const totalPrice = 0;
+    let totalPrice = 0;
     cart.map((item) => {
       totalPrice += item.product.price * item.quantity;
     });
