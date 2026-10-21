@@ -109,7 +109,7 @@ router.post("/updateproduct/:id", upload.array("images", 5), updateProduct);
 // cart management
 router.post("/create/cart", createCartController);
 router.get("/get-cart/:userId", getCartController);
-router.post("/cart/update/:id", incremetDrecrimentCartController);
+router.put("/cart-update/:id", incremetDrecrimentCartController);
 router.delete("/cart-delete/:id", deleteCartController);
 //wishlist managment
 router.post("/create/wishlist", toggleWishlistController);

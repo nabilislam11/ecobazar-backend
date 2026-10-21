@@ -167,10 +167,7 @@ const getCartController = async (req, res) => {
       .find({ user: userId })
       .populate("user product");
 
-    let totalPrice = 0;
-    cart.map((item) => {
-      totalPrice += item.totalPrice;
-    });
+    const totalPrice = cart.reduce((sum, item) => sum + item.totalPrice, 0);
     return res.status(200).json({
       cart,
       totalPrice,
