@@ -168,21 +168,23 @@ const getCartController = async (req, res) => {
       .populate("user product")
       .lean();
 
-    // const totalPrice = cart.reduce((sum, item) => sum + item.totalPrice, 0);
-    const totalPrice = 0;
-    cart.map((item) => {
-      totalPrice += item.product.price * item.quantity;
-    });
-    let cartItem = [];
-    cart.map((item) => {
-      let cart = {
+    let totalPrice = 0; // 👈 const এর জায়গায় let দেওয়া হয়েছে
+
+    // একটি ম্যাপ চালিয়েই অ্যারে তৈরি এবং টোটাল প্রাইস হিসাব করা হলো
+    const cartItem = cart.map((item) => {
+      // item.product.price থেকে প্রাইস নেওয়া হচ্ছে
+      const itemTotal = item.product.price * item.quantity;
+
+      totalPrice += itemTotal; // মেইন টোটালে যোগ করা হচ্ছে
+
+      return {
         ...item,
-        totalPrice: item.price * item.quantity,
+        totalPrice: itemTotal,
       };
-      cartItem.push(cart);
     });
+
     return res.status(200).json({
-      cart,
+      cart: cartItem,
       totalPrice,
       success: true,
     });
