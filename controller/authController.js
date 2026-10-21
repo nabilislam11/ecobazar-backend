@@ -38,12 +38,17 @@ const registrationController = async (req, res) => {
       process.env.ACCESS_TOKEN_SECRET,
       "1d",
     );
-    await mailVerification(token, email);
+    try {
+      await mailVerification(token, email);
+    } catch (mailError) {
+      console.log("Email sending failed:", mailError);
+    }
     return res.status(201).json({
       success: true,
       message: "Registration successfull",
     });
   } catch (error) {
+    console.log("Registration API Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server Error ",
