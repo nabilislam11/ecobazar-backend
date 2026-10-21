@@ -85,7 +85,7 @@ const createCartController = async (req, res) => {
       product: proId,
       user: userId,
       quantity,
-      totalPrice: unitPrice * quantity,
+      // totalPrice: unitPrice * quantity,
     });
 
     await cart.save();
@@ -165,9 +165,22 @@ const getCartController = async (req, res) => {
   try {
     const cart = await cartModel
       .find({ user: userId })
-      .populate("user product");
+      .populate("user product")
+      .lean();
 
-    const totalPrice = cart.reduce((sum, item) => sum + item.totalPrice, 0);
+    const totalPrice = 0;
+    cart.map((item) => {
+      totalPrice += item.product.price * item.quantity;
+    });
+    let cartItem = [];
+    cart.map((item) => {
+      let cart = {
+        ...item,
+        totalPrice: item.price * item.quantity,
+      };
+      cartItem.push(cart);
+    });
+
     return res.status(200).json({
       cart,
       totalPrice,
