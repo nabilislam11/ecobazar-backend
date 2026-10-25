@@ -19,7 +19,7 @@ const orderModel = new Schema(
         category: String,
         cus_email: String,
         cus_add1: String,
-        cus_phone: Number,
+        cus_phone: String,
         cus_postcode: String,
       },
     ],

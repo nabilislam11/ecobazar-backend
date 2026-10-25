@@ -74,7 +74,7 @@ const paymentController = async (req, res) => {
       user: userId,
       products: pro,
       totalPrice: totalPriceCart,
-      tranId: transId,
+      transId: transId,
     });
     await order.save();
     return res.status(200).json(data);
