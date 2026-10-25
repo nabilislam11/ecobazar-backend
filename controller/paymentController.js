@@ -13,6 +13,7 @@ const paymentController = async (req, res) => {
     cus_state,
     cus_postcode,
     cus_phone,
+    shippingCost,
   } = req.body;
 
   try {
@@ -38,6 +39,7 @@ const paymentController = async (req, res) => {
 
       totalPriceCart += item.totalPrice;
     });
+    totalPriceCart += Number(shippingCost || 0);
     const paymentData = {
       store_id: "aamarpaytest",
       tran_id: transId,
@@ -72,7 +74,7 @@ const paymentController = async (req, res) => {
       user: userId,
       products: pro,
       totalPrice: totalPriceCart,
-      transId: transId,
+      tranId: transId,
     });
     await order.save();
     return res.status(200).json(data);

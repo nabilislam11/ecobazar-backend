@@ -27,7 +27,6 @@ const {
   incremetDrecrimentCartController,
   deleteCartController,
 } = require("../controller/cartController");
-const paymentController = require("../controller/paymentController");
 const {
   getAllUserController,
   getUserVerifiedController,
@@ -56,6 +55,7 @@ const {
   toggleWishlistController,
   getWishlistController,
 } = require("../controller/wishlistController");
+const paymentController = require("../controller/paymentController");
 const router = express.Router();
 router.post("/registration", registrationLimiter, registrationController);
 router.post("/login", loginLimiter, loginController);
