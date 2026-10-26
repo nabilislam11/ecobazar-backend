@@ -78,6 +78,7 @@ const paymentController = async (req, res) => {
       tranId: transId,
     });
     await order.save();
+    await Cart.deleteMany({ user: userId });
     return res.status(200).json(data);
   } catch (error) {
     console.log(error.response?.data || error.message);
