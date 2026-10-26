@@ -117,7 +117,22 @@ router.get("/get/wishlist/:userId", getWishlistController);
 // order managment
 router.post("/payment", paymentController);
 router.post("/payment/success", (req, res) => {
+  console.log("AAMARPAY CALLBACK:", {
+    status_code: req.body?.status_code,
+    pay_status: req.body?.pay_status,
+    amount: req.body?.amount,
+    mer_txnid: req.body?.mer_txnid,
+    store_id: req.body?.store_id,
+  });
   res.redirect("http://localhost:5173/order-success");
+});
+router.post("/payment/fail", (req, res) => {
+  res.redirect("http://localhost:5173/checkout");
+});
+
+// পেমেন্ট ক্যানসেল করলে
+router.post("/payment/cancel", (req, res) => {
+  res.redirect("http://localhost:5173/checkout");
 });
 // user managment
 router.get("/alluser", getAllUserController);

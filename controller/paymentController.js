@@ -19,7 +19,26 @@ const paymentController = async (req, res) => {
   try {
     const cart = await Cart.find({ user: userId }).populate("product");
     console.log(cart, "cart");
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
 
+    if (!cart.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Your cart is empty",
+      });
+    }
+
+    if (cart.some((item) => !item.product)) {
+      return res.status(400).json({
+        success: false,
+        message: "A product in your cart is no longer available",
+      });
+    }
     let totalPriceCart = 0;
     const pro = [];
     cart.map((item) => {
@@ -36,20 +55,40 @@ const paymentController = async (req, res) => {
         cus_phone: cus_phone,
         cus_postcode: cus_postcode,
       });
-
-      totalPriceCart += item.totalPrice;
     });
-    totalPriceCart += Number(shippingCost || 0);
+    const cartSubtotal = cart.reduce(
+      (sum, item) => sum + Number(item.totalPrice || 0),
+      0,
+    );
+
+    const { deliveryZone } = req.body;
+
+    const shippingCost =
+      cartSubtotal > 1000
+        ? 0
+        : deliveryZone === "inner"
+          ? 70
+          : deliveryZone === "outer"
+            ? 140
+            : null;
+
+    if (shippingCost === null) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid delivery zone",
+      });
+    }
+    totalPriceCart = cartSubtotal + shippingCost;
     const baseUrl = process.env.BASE_URL || "http://localhost:5000";
     const paymentData = {
-      store_id: "aamarpaytest",
+      store_id: "AAMARPAY_STORE_ID",
       tran_id: transId,
       success_url: `${baseUrl}/api/v1/auth/payment/success`,
       fail_url: `${baseUrl}/api/v1/auth/payment/fail`,
       cancel_url: `${baseUrl}/api/v1/auth/payment/cancel`,
       amount: totalPriceCart.toString(),
       currency: "BDT",
-      signature_key: "dbb74894e82415a2f7ff0ec3a97e4183",
+      signature_key: "AAMARPAY_SIGNATURE_KEY",
       desc: "Merchant Registration Payment",
       cus_name: cus_name,
       cus_email: cus_email,
@@ -78,7 +117,7 @@ const paymentController = async (req, res) => {
       tranId: transId,
     });
     await order.save();
-    await Cart.deleteMany({ user: userId });
+
     return res.status(200).json(data);
   } catch (error) {
     console.log(error.response?.data || error.message);
