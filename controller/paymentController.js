@@ -44,7 +44,7 @@ const paymentController = async (req, res) => {
     const paymentData = {
       store_id: "aamarpaytest",
       tran_id: transId,
-      success_url: `${baseUrl}/auth/payment/success`,
+      success_url: `${baseUrl}/OrderSuccesss`,
       fail_url: `${baseUrl}/auth/api/payment/fail`,
       cancel_url: `${baseUrl}/auth/payment/cancel`,
       amount: totalPriceCart.toString(),
@@ -75,7 +75,7 @@ const paymentController = async (req, res) => {
       user: userId,
       products: pro,
       totalPrice: totalPriceCart,
-      transId: transId,
+      tranId: transId,
     });
     await order.save();
     return res.status(200).json(data);

@@ -27,7 +27,7 @@ const orderModel = new Schema(
       type: Number,
       required: true,
     },
-    transId: {
+    tranId: {
       type: String,
       required: true,
       unique: true,
