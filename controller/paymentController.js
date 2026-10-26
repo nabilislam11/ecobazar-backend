@@ -44,9 +44,9 @@ const paymentController = async (req, res) => {
     const paymentData = {
       store_id: "aamarpaytest",
       tran_id: transId,
-      success_url: `${baseUrl}/order-success`,
-      fail_url: `${baseUrl}/auth/api/payment/fail`,
-      cancel_url: `${baseUrl}/auth/payment/cancel`,
+      success_url: `${baseUrl}/api/v1/auth/order-success`,
+      fail_url: `${baseUrl}/api/v1/auth/payment/fail`,
+      cancel_url: `${baseUrl}/api/v1/auth/payment/cancel`,
       amount: totalPriceCart.toString(),
       currency: "BDT",
       signature_key: "dbb74894e82415a2f7ff0ec3a97e4183",
