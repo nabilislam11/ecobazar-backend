@@ -40,13 +40,13 @@ const paymentController = async (req, res) => {
       totalPriceCart += item.totalPrice;
     });
     totalPriceCart += Number(shippingCost || 0);
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000/api/v1";
+    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
     const paymentData = {
       store_id: "aamarpaytest",
       tran_id: transId,
-      success_url: `${baseUrl}/auth/payment/success`,
-      fail_url: `${baseUrl}/auth/payment/fail`,
-      cancel_url: `${baseUrl}/auth/payment/cancel`,
+      success_url: `${baseUrl}/api/v1/auth/payment/success`,
+      fail_url: `${baseUrl}/api/v1/auth/payment/fail`,
+      cancel_url: `${baseUrl}/api/v1/auth/payment/cancel`,
       amount: totalPriceCart.toString(),
       currency: "BDT",
       signature_key: "dbb74894e82415a2f7ff0ec3a97e4183",
