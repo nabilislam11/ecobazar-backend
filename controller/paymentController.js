@@ -81,14 +81,14 @@ const paymentController = async (req, res) => {
     totalPriceCart = cartSubtotal + shippingCost;
     const baseUrl = process.env.BASE_URL || "http://localhost:5000";
     const paymentData = {
-      store_id: "AAMARPAY_STORE_ID",
+      store_id: process.env.AAMARPAY_STORE_ID,
       tran_id: transId,
       success_url: `${baseUrl}/api/v1/auth/payment/success`,
       fail_url: `${baseUrl}/api/v1/auth/payment/fail`,
       cancel_url: `${baseUrl}/api/v1/auth/payment/cancel`,
       amount: totalPriceCart.toString(),
       currency: "BDT",
-      signature_key: "AAMARPAY_SIGNATURE_KEY",
+      signature_key: process.env.AAMARPAY_SIGNATURE_KEY,
       desc: "Merchant Registration Payment",
       cus_name: cus_name,
       cus_email: cus_email,
@@ -101,8 +101,10 @@ const paymentController = async (req, res) => {
       cus_phone: cus_phone,
       type: "json",
     };
+    const paymentBaseUrl =
+      process.env.AAMARPAY_BASE_URL || "https://sandbox.aamarpay.com";
     const { data } = await axios.post(
-      "https://sandbox.aamarpay.com/jsonpost.php",
+      `${paymentBaseUrl}/jsonpost.php`,
       paymentData,
       {
         headers: {
@@ -110,6 +112,8 @@ const paymentController = async (req, res) => {
         },
       },
     );
+
+    console.log("AAMARPAY INIT RESPONSE:", data);
     const order = new orderModel({
       user: userId,
       products: pro,
