@@ -116,6 +116,9 @@ router.post("/create/wishlist", toggleWishlistController);
 router.get("/get/wishlist/:userId", getWishlistController);
 // order managment
 router.post("/payment", paymentController);
+router.post("/payment/success", (req, res) => {
+  res.redirect("http://localhost:5173/order-success");
+});
 // user managment
 router.get("/alluser", getAllUserController);
 router.get("/getverifieduser", getUserVerifiedController);
