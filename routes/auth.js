@@ -56,6 +56,7 @@ const {
   getWishlistController,
 } = require("../controller/wishlistController");
 const paymentController = require("../controller/paymentController");
+const paymentSuccessController = require("../controller/paymentSuccessController");
 const router = express.Router();
 router.post("/registration", registrationLimiter, registrationController);
 router.post("/login", loginLimiter, loginController);
@@ -116,16 +117,7 @@ router.post("/create/wishlist", toggleWishlistController);
 router.get("/get/wishlist/:userId", getWishlistController);
 // order managment
 router.post("/payment", paymentController);
-router.post("/payment/success", (req, res) => {
-  console.log("AAMARPAY CALLBACK:", {
-    status_code: req.body?.status_code,
-    pay_status: req.body?.pay_status,
-    amount: req.body?.amount,
-    mer_txnid: req.body?.mer_txnid,
-    store_id: req.body?.store_id,
-  });
-  res.redirect("http://localhost:5173/order-success");
-});
+router.post("/payment/success", paymentSuccessController);
 router.post("/payment/fail", (req, res) => {
   res.redirect("http://localhost:5173/checkout");
 });
