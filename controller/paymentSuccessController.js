@@ -5,8 +5,14 @@ const Order = require("../model/orderModel");
 const paymentSuccessController = async (req, res) => {
   const transactionId = String(req.body?.mer_txnid || "").trim();
 
-  const frontendUrl = (
+  const rawFrontendUrl = (
     process.env.FRONTEND_URL || "http://localhost:5173"
+  ).trim();
+
+  const frontendUrl = (
+    /^https?:\/\//i.test(rawFrontendUrl)
+      ? rawFrontendUrl
+      : `https://${rawFrontendUrl}`
   ).replace(/\/+$/, "");
 
   if (!transactionId) {
@@ -101,7 +107,7 @@ const paymentSuccessController = async (req, res) => {
 
     console.log("ORDER APPROVED:", order.tranId);
 
-    return res.redirect(`${frontendUrl}/order-success?payment=success`);
+    return res.redirect(302, `${frontendUrl}/order-success?payment=success`);
   } catch (error) {
     console.error(
       "PAYMENT VERIFICATION ERROR:",
