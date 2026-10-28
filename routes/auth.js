@@ -57,6 +57,7 @@ const {
 } = require("../controller/wishlistController");
 const paymentController = require("../controller/paymentController");
 const paymentSuccessController = require("../controller/paymentSuccessController");
+const createCodOrderController = require("../controller/codOrderController");
 const router = express.Router();
 router.post("/registration", registrationLimiter, registrationController);
 router.post("/login", loginLimiter, loginController);
@@ -116,13 +117,12 @@ router.delete("/cart-delete/:id", deleteCartController);
 router.post("/create/wishlist", toggleWishlistController);
 router.get("/get/wishlist/:userId", getWishlistController);
 // order managment
+router.post("/orders/cod", createCodOrderController);
 router.post("/payment", paymentController);
 router.post("/payment/success", paymentSuccessController);
 router.post("/payment/fail", (req, res) => {
   res.redirect("http://localhost:5173/checkout");
 });
-
-// পেমেন্ট ক্যানসেল করলে
 router.post("/payment/cancel", (req, res) => {
   res.redirect("http://localhost:5173/checkout");
 });
