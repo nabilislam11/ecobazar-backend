@@ -89,4 +89,4 @@ const orderSchema = new Schema(
 );
 
 // Explicitly use the existing MongoDB collection.
-module.exports = mongoose.model("Order", orderSchema, "orders");
+module.exports = mongoose.model("Orders", orderSchema);
