@@ -30,8 +30,8 @@ const paymentSuccessController = async (req, res) => {
     }
 
     // Prevent processing the same successful callback again
-    if (order.status === "approved") {
-      return res.redirect(`${frontendUrl}/order-success?payment=success`);
+    if (order.status === "approved" && order.paymentStatus === "paid") {
+      return res.redirect(302`${frontendUrl}/order-success?payment=success`);
     }
 
     const baseUrl = (
@@ -98,7 +98,16 @@ const paymentSuccessController = async (req, res) => {
 
     // Approve only after successful verification
     order.status = "approved";
+    order.paymentMethod = "Aamarpay";
+    order.paymentStatus = "paid";
     await order.save();
+
+    console.log("ORDER PAYMENT STATUS UPDATED:", {
+      tranId: order.tranId,
+      status: order.status,
+      paymentMethod: order.paymentMethod,
+      paymentStatus: order.paymentStatus,
+    });
 
     // Clear cart only after verification succeeds
     await Cart.deleteMany({
@@ -106,8 +115,10 @@ const paymentSuccessController = async (req, res) => {
     });
 
     console.log("ORDER APPROVED:", order.tranId);
-
-    return res.redirect(302, `${frontendUrl}/order-success?payment=success`);
+    return res.redirect(
+      302,
+      `${frontendUrl}/order-success?payment=success&tranId=${encodeURIComponent(order.tranId)}`,
+    );
   } catch (error) {
     console.error(
       "PAYMENT VERIFICATION ERROR:",
