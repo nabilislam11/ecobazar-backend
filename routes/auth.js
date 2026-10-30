@@ -121,7 +121,7 @@ router.get("/get/wishlist/:userId", getWishlistController);
 router.post("/orders/cod", createCodOrderController);
 router.post("/payment", paymentController);
 router.post("/payment/success", paymentSuccessController);
-router.post("/payment/cancele", createPaymentExitController("cancelled"));
+router.post("/payment/cancel", createPaymentExitController("cancelled"));
 router.post("/payment/fail", createPaymentExitController("failed"));
 
 // user managment
