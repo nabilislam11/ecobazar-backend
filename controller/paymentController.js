@@ -79,7 +79,7 @@ const paymentController = async (req, res) => {
       });
     }
     totalPriceCart = cartSubtotal + shippingCost;
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const baseUrl = process.env.BASE_URL || "http://localhost:5173";
     const paymentData = {
       store_id: process.env.AAMARPAY_STORE_ID,
       tran_id: transId,
