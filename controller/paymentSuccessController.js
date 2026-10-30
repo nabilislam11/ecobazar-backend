@@ -8,9 +8,6 @@ const paymentSuccessController = async (req, res) => {
   const rawFrontendUrl = (
     process.env.FRONTEND_URL || "http://localhost:5173"
   ).trim();
-  // 👇 ঠিক এইখানে লগ করুন:
-  console.log("From ENV file:", process.env.FRONTEND_URL);
-  console.log("Final URL using:", rawFrontendUrl, "asdfasdfas");
 
   const frontendUrl = (
     /^https?:\/\//i.test(rawFrontendUrl)
