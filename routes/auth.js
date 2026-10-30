@@ -58,6 +58,7 @@ const {
 const paymentController = require("../controller/paymentController");
 const paymentSuccessController = require("../controller/paymentSuccessController");
 const createCodOrderController = require("../controller/codOrderController");
+const createPaymentExitController = require("../controller/paymentExitController");
 const router = express.Router();
 router.post("/registration", registrationLimiter, registrationController);
 router.post("/login", loginLimiter, loginController);
@@ -120,12 +121,9 @@ router.get("/get/wishlist/:userId", getWishlistController);
 router.post("/orders/cod", createCodOrderController);
 router.post("/payment", paymentController);
 router.post("/payment/success", paymentSuccessController);
-router.post("/payment/fail", (req, res) => {
-  res.redirect("http://localhost:5173/checkout");
-});
-router.post("/payment/cancel", (req, res) => {
-  res.redirect("http://localhost:5173/checkout");
-});
+router.post("/payment/cancele", createPaymentExitController("cancelled"));
+router.post("/payment/fail", createPaymentExitController("failed"));
+
 // user managment
 router.get("/alluser", getAllUserController);
 router.get("/getverifieduser", getUserVerifiedController);

@@ -57,7 +57,7 @@ const orderSchema = new Schema(
     // Actual payment status
     paymentStatus: {
       type: String,
-      enum: ["unpaid", "paid", "failed"],
+      enum: ["unpaid", "paid", "failed", "cancelled"],
       default: "unpaid",
     },
 
