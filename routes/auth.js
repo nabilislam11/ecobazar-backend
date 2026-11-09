@@ -59,6 +59,10 @@ const paymentController = require("../controller/paymentController");
 const paymentSuccessController = require("../controller/paymentSuccessController");
 const createCodOrderController = require("../controller/codOrderController");
 const createPaymentExitController = require("../controller/paymentExitController");
+const {
+  subscribeNewsletterController,
+  getNewsletterSubscribersController,
+} = require("../controller/newsletterController");
 const router = express.Router();
 router.post("/registration", registrationLimiter, registrationController);
 router.post("/login", loginLimiter, loginController);
@@ -123,8 +127,10 @@ router.post("/payment", paymentController);
 router.post("/payment/success", paymentSuccessController);
 router.post("/payment/cancel", createPaymentExitController("cancelled"));
 router.post("/payment/fail", createPaymentExitController("failed"));
-
+//Subscribenewsletter
 // user managment
+router.post("/newsletter/subscribe", subscribeNewsletterController);
+router.post("/newsletter/getsubscribe", getNewsletterSubscribersController);
 router.get("/alluser", getAllUserController);
 router.get("/getverifieduser", getUserVerifiedController);
 router.get("/allsingleuser/:id", getSingleUserController);

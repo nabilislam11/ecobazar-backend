@@ -229,35 +229,298 @@ const createProductController = async (req, res) => {
 
 const getAllProduct = async (req, res) => {
   try {
-    // let params = req.query.section;
+    const {
+      page = 1,
+      pageSize = 12,
+      category,
+      brand,
+      section,
+      minPrice,
+      maxPrice,
+      sort = "latest",
+      q,
+    } = req.query;
 
-    // const product = await Product.find(params ? { section: params } : {});
-    const { section, category } = req.query;
+    // 1. Pagination validation
+    const currentPage = Math.max(1, parseInt(page, 10) || 1);
+    const limit = Math.min(48, Math.max(1, parseInt(pageSize, 10) || 12));
 
-    const filter = {};
+    const skip = (currentPage - 1) * limit;
 
-    if (section) {
-      filter.section = section;
+    // 2. Validate category ID
+    if (category && !mongoose.Types.ObjectId.isValid(category)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid category ID",
+      });
     }
+
+    // 3. Validate price filters
+    const min = minPrice !== undefined ? Number(minPrice) : undefined;
+
+    const max = maxPrice !== undefined ? Number(maxPrice) : undefined;
+
+    if (
+      (min !== undefined && (!Number.isFinite(min) || min < 0)) ||
+      (max !== undefined && (!Number.isFinite(max) || max < 0)) ||
+      (min !== undefined && max !== undefined && min > max)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid price range",
+      });
+    }
+
+    // 4. Escape search text
+    const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    // 5. Common filters for available facets
+    const baseFilter = {};
 
     if (category) {
-      filter.category = category;
+      baseFilter.category = new mongoose.Types.ObjectId(category);
     }
 
-    const product = await Product.find(filter);
+    if (q && q.trim()) {
+      const searchRegex = new RegExp(escapeRegex(q.trim()), "i");
+
+      baseFilter.$or = [
+        { title: searchRegex },
+        { shortDescription: searchRegex },
+        { description: searchRegex },
+      ];
+    }
+
+    // 6. Product listing filters
+    const listingFilter = { ...baseFilter };
+
+    if (brand && brand.trim()) {
+      listingFilter.brand = new RegExp(`^${escapeRegex(brand.trim())}$`, "i");
+    }
+
+    const allowedSections = [
+      "todaysDeal",
+      "featuredProducts",
+      "populerDeals",
+      "slider",
+      "none",
+    ];
+
+    if (section) {
+      if (!allowedSections.includes(section)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid product section",
+        });
+      }
+
+      listingFilter.section = section;
+    }
+
+    // 7. Calculate effective price after discount
+    const effectivePriceExpression = {
+      $switch: {
+        branches: [
+          {
+            case: {
+              $and: [
+                { $eq: ["$discountType", "percentage"] },
+                { $gt: [{ $ifNull: ["$discount", 0] }, 0] },
+                {
+                  $or: [
+                    { $eq: [{ $ifNull: ["$discountStartDate", null] }, null] },
+                    { $lte: ["$discountStartDate", "$$NOW"] },
+                  ],
+                },
+                {
+                  $or: [
+                    { $eq: [{ $ifNull: ["$discountEndDate", null] }, null] },
+                    { $gte: ["$discountEndDate", "$$NOW"] },
+                  ],
+                },
+              ],
+            },
+            then: {
+              $multiply: [
+                "$price",
+                {
+                  $subtract: [
+                    1,
+                    {
+                      $divide: [{ $ifNull: ["$discount", 0] }, 100],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+          {
+            case: {
+              $and: [
+                { $eq: ["$discountType", "flat"] },
+                { $gt: [{ $ifNull: ["$discount", 0] }, 0] },
+                {
+                  $or: [
+                    { $eq: [{ $ifNull: ["$discountStartDate", null] }, null] },
+                    { $lte: ["$discountStartDate", "$$NOW"] },
+                  ],
+                },
+                {
+                  $or: [
+                    { $eq: [{ $ifNull: ["$discountEndDate", null] }, null] },
+                    { $gte: ["$discountEndDate", "$$NOW"] },
+                  ],
+                },
+              ],
+            },
+            then: {
+              $subtract: ["$price", { $ifNull: ["$discount", 0] }],
+            },
+          },
+        ],
+        default: "$price",
+      },
+    };
+
+    // 8. Fetch filter information from matching products
+    const [metadata = {}] = await Product.aggregate([
+      { $match: baseFilter },
+      {
+        $addFields: {
+          effectivePrice: effectivePriceExpression,
+        },
+      },
+      {
+        $facet: {
+          priceRange: [
+            {
+              $group: {
+                _id: null,
+                minPrice: { $min: "$effectivePrice" },
+                maxPrice: { $max: "$effectivePrice" },
+              },
+            },
+          ],
+          brands: [
+            {
+              $match: {
+                brand: { $type: "string", $ne: "" },
+              },
+            },
+            { $group: { _id: "$brand" } },
+            { $sort: { _id: 1 } },
+          ],
+          sections: [
+            {
+              $match: {
+                section: { $nin: [null, "", "none"] },
+              },
+            },
+            { $group: { _id: "$section" } },
+            { $sort: { _id: 1 } },
+          ],
+        },
+      },
+    ]);
+
+    const priceRange = metadata.priceRange?.[0] || {
+      minPrice: 0,
+      maxPrice: 0,
+    };
+
+    const brands = (metadata.brands || []).map((item) => item._id);
+    const sections = (metadata.sections || []).map((item) => item._id);
+
+    // 9. Apply effective price filters
+    const priceMatch = {};
+
+    if (min !== undefined) priceMatch.$gte = min;
+    if (max !== undefined) priceMatch.$lte = max;
+
+    // 10. Sorting
+    const sortOptions = {
+      latest: { createdAt: -1, _id: -1 },
+      "price-asc": { effectivePrice: 1, _id: -1 },
+      "price-desc": { effectivePrice: -1, _id: -1 },
+    };
+
+    const selectedSort = sortOptions[sort] || sortOptions.latest;
+
+    // 11. Fetch paginated products
+    const pipeline = [
+      { $match: listingFilter },
+      {
+        $addFields: {
+          effectivePrice: effectivePriceExpression,
+        },
+      },
+    ];
+
+    if (Object.keys(priceMatch).length > 0) {
+      pipeline.push({
+        $match: {
+          effectivePrice: priceMatch,
+        },
+      });
+    }
+
+    pipeline.push(
+      { $sort: selectedSort },
+      {
+        $facet: {
+          items: [{ $skip: skip }, { $limit: limit }],
+          count: [{ $count: "totalItems" }],
+        },
+      },
+    );
+
+    const [result = { items: [], count: [] }] =
+      await Product.aggregate(pipeline);
+
+    const items = result.items || [];
+    const totalItems = result.count?.[0]?.totalItems || 0;
+    const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+
+    // 12. Response
     return res.status(200).json({
       success: true,
-      message: "Getallprodoct ",
-      data: product,
+      message: "Products fetched successfully",
+
+      // Keep data as an array for existing components
+      data: items,
+
+      // New pagination information for Shop
+      items,
+
+      pagination: {
+        currentPage,
+        pageSize: limit,
+        totalItems,
+        totalPages,
+        hasNextPage: currentPage < totalPages,
+        hasPrevPage: currentPage > 1,
+      },
+
+      totalItems,
+      totalPages,
+
+      filters: {
+        minPrice: priceRange.minPrice ?? 0,
+        maxPrice: priceRange.maxPrice ?? 0,
+        brands,
+        sections,
+      },
     });
   } catch (error) {
+    console.error("Get all products error:", error);
+
     return res.status(500).json({
       success: false,
-      message: "Getallprodoct get some report  ",
-      data: product,
+      message: "Failed to fetch products",
     });
   }
 };
+
 const getSingleProduct = async (req, res) => {
   try {
     const { id } = req.params;
