@@ -95,6 +95,12 @@ const updateUserController = async (req, res) => {
       isHold,
       postalCode,
     } = req.body;
+    if (!phoneNumber || !phoneNumber.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number is required.",
+      });
+    }
 
     const userData = await User.findByIdAndUpdate(
       id,
@@ -129,11 +135,20 @@ const updateUserController = async (req, res) => {
       userData,
     });
   } catch (error) {
-    console.error("Update user error:", error);
+    // console.error("Update user error:", error);
+
+    // return res.status(500).json({
+    //   success: false,
+    //   message: "Server error",
+    // });
+    console.error("========== UPDATE USER ERROR ==========");
+    console.error("Name:", error.name);
+    console.error("Message:", error.message);
+    console.error("Stack:", error.stack);
 
     return res.status(500).json({
       success: false,
-      message: "Server error",
+      message: error.message,
     });
   }
 };
