@@ -80,7 +80,7 @@ const deleteUserController = async (req, res) => {
   }
 };
 
-export const getUserByIdController = async (req, res) => {
+const getUserByIdController = async (req, res) => {
   try {
     const { id } = req.params;
 

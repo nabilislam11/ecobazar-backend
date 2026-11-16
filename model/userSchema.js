@@ -1,5 +1,7 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
+
 const { Schema } = mongoose;
+
 const userSchema = new Schema(
   {
     firstName: {
@@ -14,15 +16,7 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
-
-      required: [true, "Password is requeired"],
-    },
-    phoneNumber: {
-      type: String,
-      unique: true,
-    },
-    confirmPassword: {
-      type: String,
+      required: [true, "Password is required"],
     },
     confirmPassword: {
       type: String,
@@ -57,6 +51,7 @@ const userSchema = new Schema(
     },
     phoneNumber: {
       type: String,
+      unique: true,
     },
     postalCode: {
       type: Number,
@@ -74,35 +69,20 @@ const userSchema = new Schema(
       },
     ],
     billingAddress: {
-      firstName: {
-        type: String,
-      },
-      lastName: {
-        type: String,
-      },
-      companyName: {
-        type: String,
-      },
-      address: {
-        type: String,
-      },
-      country: {
-        type: String,
-      },
-      states: {
-        type: String,
-      },
-      phoneNumber: {
-        type: String,
-      },
-      postalCode: {
-        type: Number,
-      },
-      city: {
-        type: String,
-      },
+      firstName: String,
+      lastName: String,
+      companyName: String,
+      address: String,
+      country: String,
+      states: String,
+      phoneNumber: String,
+      postalCode: Number,
+      city: String,
     },
   },
-  { Timestamp: true },
+  { timestamps: true },
 );
-module.exports = mongoose.model("User", userSchema);
+
+const User = mongoose.model("User", userSchema);
+
+export default User;

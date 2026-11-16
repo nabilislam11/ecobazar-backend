@@ -35,6 +35,7 @@ const {
   updateUserController,
   holdUserController,
   searchUserController,
+  getUserByIdController,
 } = require("../controller/userController");
 const {
   createCategory,
