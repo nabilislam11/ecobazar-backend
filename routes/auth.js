@@ -35,7 +35,7 @@ const {
   updateUserController,
   holdUserController,
   searchUserController,
-  getUserByIdController,
+  // getUserByIdController,
 } = require("../controller/userController");
 const {
   createCategory,
@@ -133,7 +133,7 @@ router.post("/payment/fail", createPaymentExitController("failed"));
 router.post("/newsletter/subscribe", subscribeNewsletterController);
 router.post("/newsletter/getsubscribe", getNewsletterSubscribersController);
 router.get("/alluser", getAllUserController);
-router.get("/get/user/:id", getUserByIdController);
+// router.get("/get/user/:id", getUserByIdController);
 
 router.get("/getverifieduser", getUserVerifiedController);
 router.get("/allsingleuser/:id", getSingleUserController);
