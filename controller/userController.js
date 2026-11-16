@@ -79,6 +79,34 @@ const deleteUserController = async (req, res) => {
     });
   }
 };
+
+export const getUserByIdController = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const userData = await User.findById(id).select("-password");
+
+    if (!userData) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      userData,
+    });
+  } catch (error) {
+    console.error("Get user error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
 const updateUserController = async (req, res) => {
   const { id } = req.params;
 
@@ -207,6 +235,7 @@ module.exports = {
   getSingleUserController,
   deleteUserController,
   holdUserController,
+  getUserByIdController,
   updateUserController,
   getUserVerifiedController,
   searchUserController,
