@@ -31,7 +31,19 @@ const paymentSuccessController = async (req, res) => {
 
     // Prevent processing the same successful callback again
     if (order.status === "approved" && order.paymentStatus === "paid") {
-      return res.redirect(302`${frontendUrl}/order-success?payment=success`);
+      const tranId = encodeURIComponent(order.tranId);
+
+      if (order.clientPlatform === "mobile") {
+        return res.redirect(
+          302,
+          `ecobazarapp://order-success?payment=success&tranId=${tranId}`,
+        );
+      }
+
+      return res.redirect(
+        302,
+        `${frontendUrl}/order-success?payment=success&tranId=${tranId}`,
+      );
     }
 
     const baseUrl = (
@@ -115,9 +127,18 @@ const paymentSuccessController = async (req, res) => {
     });
 
     console.log("ORDER APPROVED:", order.tranId);
+    const tranId = encodeURIComponent(order.tranId);
+
+    if (order.clientPlatform === "mobile") {
+      return res.redirect(
+        302,
+        `ecobazarapp://order-success?payment=success&tranId=${tranId}`,
+      );
+    }
+
     return res.redirect(
       302,
-      `${frontendUrl}/order-success?payment=success&tranId=${encodeURIComponent(order.tranId)}`,
+      `${frontendUrl}/order-success?payment=success&tranId=${tranId}`,
     );
   } catch (error) {
     console.error(

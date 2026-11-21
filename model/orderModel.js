@@ -60,7 +60,11 @@ const orderSchema = new Schema(
       enum: ["unpaid", "paid", "failed", "cancelled"],
       default: "unpaid",
     },
-
+    clientPlatform: {
+      type: String,
+      enum: ["web", "mobile"],
+      default: "web",
+    },
     // Customer information
     customerName: String,
     customerEmail: String,

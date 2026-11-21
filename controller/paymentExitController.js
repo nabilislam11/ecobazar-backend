@@ -20,6 +20,35 @@ const createPaymentExitController = (outcome) => {
         ? rawFrontendUrl
         : `https://${rawFrontendUrl}`
     ).replace(/\/+$/, "");
+    // mobile app add er ager
+    // const redirectToCheckout = (paymentStatus) => {
+    //   let path = "/checkout";
+
+    //   if (paymentStatus === "failed") {
+    //     path = "/payment-failed";
+    //   } else if (paymentStatus === "cancelled") {
+    //     path = "/payment-cancelled";
+    //   }
+
+    //   const params = new URLSearchParams();
+
+    //   if (transactionId) {
+    //     params.set("tranId", transactionId);
+    //   }
+
+    //   if (path === "/checkout") {
+    //     params.set("payment", paymentStatus);
+    //   }
+
+    //   const query = params.toString();
+
+    //   return res.redirect(
+    //     302,
+    //     `${frontendUrl}${path}${query ? `?${query}` : ""}`,
+    //   );
+    // };
+
+    let order = null;
 
     const redirectToCheckout = (paymentStatus) => {
       let path = "/checkout";
@@ -28,20 +57,37 @@ const createPaymentExitController = (outcome) => {
         path = "/payment-failed";
       } else if (paymentStatus === "cancelled") {
         path = "/payment-cancelled";
+      } else if (paymentStatus === "success") {
+        path = "/order-success";
       }
 
       const params = new URLSearchParams();
 
-      if (transactionId) {
-        params.set("tranId", transactionId);
+      const currentTranId = order?.tranId || transactionId;
+
+      if (currentTranId) {
+        params.set("tranId", currentTranId);
       }
 
       if (path === "/checkout") {
         params.set("payment", paymentStatus);
       }
 
+      if (path === "/order-success") {
+        params.set("payment", "success");
+      }
+
       const query = params.toString();
 
+      // Mobile app redirect
+      if (order?.clientPlatform === "mobile") {
+        return res.redirect(
+          302,
+          `ecobazarapp://${path.slice(1)}${query ? `?${query}` : ""}`,
+        );
+      }
+
+      // Existing Web redirect
       return res.redirect(
         302,
         `${frontendUrl}${path}${query ? `?${query}` : ""}`,
@@ -54,7 +100,7 @@ const createPaymentExitController = (outcome) => {
     }
 
     try {
-      const order = await Order.findOne({
+      order = await Order.findOne({
         tranId: transactionId,
       });
 
@@ -65,10 +111,7 @@ const createPaymentExitController = (outcome) => {
 
       // Never downgrade an already paid order.
       if (order.paymentStatus === "paid" && order.status === "approved") {
-        return res.redirect(
-          302,
-          `${frontendUrl}/order-success?payment=success&tranId=${encodeURIComponent(order.tranId)}`,
-        );
+        return redirectToCheckout("success");
       }
 
       const baseUrl = (

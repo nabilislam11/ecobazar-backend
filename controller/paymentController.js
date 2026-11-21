@@ -15,6 +15,8 @@ const paymentController = async (req, res) => {
     cus_phone,
     shippingCost,
   } = req.body;
+  const clientPlatform =
+    req.body?.clientPlatform === "mobile" ? "mobile" : "web";
 
   try {
     const cart = await Cart.find({ user: userId }).populate("product");
@@ -119,6 +121,7 @@ const paymentController = async (req, res) => {
       products: pro,
       totalPrice: totalPriceCart,
       tranId: transId,
+      clientPlatform,
     });
     await order.save();
 
