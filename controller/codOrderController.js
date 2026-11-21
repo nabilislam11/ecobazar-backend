@@ -3,6 +3,8 @@ const Cart = require("../model/cartModel");
 const Order = require("../model/orderModel");
 
 const createCodOrderController = async (req, res) => {
+  const clientPlatform =
+    req.body?.clientPlatform === "mobile" ? "mobile" : "web";
   const {
     userId,
     cus_name,
@@ -134,6 +136,7 @@ const createCodOrderController = async (req, res) => {
       deliveryZone,
       shippingCost,
       orderNotes: orderNotes || "",
+      clientPlatform,
     });
 
     // 8. Save the order first
@@ -143,8 +146,6 @@ const createCodOrderController = async (req, res) => {
     await Cart.deleteMany({
       user: userId,
     });
-
-    console.log("COD ORDER CREATED:", order.tranId);
 
     return res.status(201).json({
       success: true,
