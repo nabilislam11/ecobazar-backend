@@ -1,8 +1,9 @@
 const axios = require("axios");
 const Cart = require("../model/cartModel");
+const crypto = require("crypto");
 const orderModel = require("../model/orderModel");
 const paymentController = async (req, res) => {
-  const transId = Date.now().toString();
+  const transId = `ECO-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`;
   const {
     userId,
     cus_name,
@@ -112,8 +113,17 @@ const paymentController = async (req, res) => {
         headers: {
           "Content-Type": "application/json",
         },
+        timeout: 15000,
       },
     );
+    console.log("AAMARPAY INIT RESPONSE:", data);
+
+    if (!data?.payment_url) {
+      return res.status(502).json({
+        success: false,
+        message: "Aamarpay payment initialization failed",
+      });
+    }
 
     console.log("AAMARPAY INIT RESPONSE:", data);
     const order = new orderModel({
